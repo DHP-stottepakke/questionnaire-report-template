@@ -6,9 +6,6 @@
 {#-  TAGS, REFERENCES, and EXPERTS MACROS                                                 -#}
 {#- ------------------------------------------------------------------------------------ -#}
 {%- macro renderTags(question) -%}
-{%- if question.tags|length > 0 %}
-* 🏷️ **Tags:** {% for tag in question.tags %}*{{tag.name}}*{% if not loop.last %}, {% endif %}{% endfor %}
-{%- endif %}
 {%- endmacro -%}
 {%- macro renderResourcePageReferences(question) -%}
 {% set refs = [] %}

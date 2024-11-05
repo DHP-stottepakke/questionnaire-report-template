@@ -1,8 +1,8 @@
 {
   "organizationId": "dsw",
-  "templateId": "questionnaire-report",
-  "version": "2.12.0",
-  "name": "Questionnaire Report",
+  "templateId": "questionnaire-report-bott",
+  "version": "2.12.2",
+  "name": "Questionnaire Report BOTT",
   "description": "Exported questions and answers from a questionnaire",
   "metamodelVersion": 14,
   "license": "Apache-2.0",
