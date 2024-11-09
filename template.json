@@ -1,10 +1,12 @@
 {
   "organizationId": "dsw",
-  "templateId": "questionnaire-report-bott",
-  "version": "2.12.2",
+  
+  "templateId": "questionnaire-report",
+  "version": "2.13.1",
   "name": "Questionnaire Report BOTT",
+
   "description": "Exported questions and answers from a questionnaire",
-  "metamodelVersion": 14,
+  "metamodelVersion": 15,
   "license": "Apache-2.0",
   "allowedPackages": [
     {

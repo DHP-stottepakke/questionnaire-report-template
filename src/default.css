@@ -328,7 +328,6 @@ header .tool-info svg {
 
 
 /* Experts and references */
-
 .experts, .references {
   color: #868e96;
   line-height: 1.5;
@@ -457,7 +456,6 @@ div#versions td.no-versions {
 }
 
 /* Resource collections and pages */
-
 .resource-collection {
   margin-left: .5rem;
 }

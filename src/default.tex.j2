@@ -9,13 +9,13 @@
 {%- macro renderAnswerValue(question, reply, path, humanIdentifier) %}
 {%- if reply is of_type("StringReply") %}
 \begin{itemize}
-  \item[\CheckmarkBold] {{reply.value}}
+  \item[\CheckmarkBold] {{ reply.value }}
 \end{itemize}
 {% else %}
 \begin{itemize}
   \item[\CheckmarkBold] 
   \begin{markdown}
-  {{reply.value}}
+  {{ reply.value }}
   \end{markdown}
   {% if reply.is_integration -%}
   {%- set integration = question.integration -%}
@@ -81,7 +81,18 @@
 {%- endif %}
 {%- endmacro -%}
 {%- macro renderAnswerItemSelect(question, reply, path, humanIdentifier) -%}
-\item[\CheckmarkBold] {{ reply.item_title }}
+\begin{itemize}
+  \item[\CheckmarkBold] {{ reply.item_title }}
+\end{itemize}
+{%- endmacro -%}
+{%- macro renderAnswerFile(question, reply, path, humanIdentifier) -%}
+\begin{itemize}
+{% if reply.file %}
+  \item[\CheckmarkBold] \href{{ "{" }}{{ reply.file.download_url }}{{ "}" }}{{ "{" }}{{ reply.file.name }}{{ "}" }} ({{ reply.file.size|bytesize_format }})
+{% else %}
+  \item[\XSolidBrush] \textit{The file has been deleted}
+{% endif %}
+\end{itemize}
 {%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  QUESTION REPLY MACROS                                                               -#}
@@ -90,7 +101,7 @@
   {%- set isRequired = question.is_required -%}
   {%- set reply = question.replies.get(path) -%}
   {%- if reply and reply.value -%}
-    {%- if question.questionType == "ValueQuestion" and reply.value.type == "StringReply" -%}
+    {%- if question is of_type("ValueQuestion") and reply is of_type("StringReply") -%}  {# odend8ni value.#}
       {{ renderAnswerValue(question, reply, path, humanIdentifier) }}
     {%- elif question is of_type("OptionsQuestion") and reply is of_type("AnswerReply") -%}
       {{ renderAnswerOption(question, reply, path, humanIdentifier) }}
@@ -102,6 +113,8 @@
       {{ renderAnswerChoiceList(question, reply, path, humanIdentifier) }}
     {% elif question is of_type("ItemSelectQuestion") and reply is of_type("ItemSelectReply") %}
       {{ renderAnswerItemSelect(question, reply, path, humanIdentifier) }}
+    {% elif question is of_type("FileQuestion") and reply is of_type("FileReply") %}
+      {{ renderAnswerFile(question, reply, path, humanIdentifier) }}
     {%- endif -%}
   {% else %}
 \begin{itemize}
@@ -113,7 +126,7 @@
 {#-  QUESTION EXTRAS MACRO                                                               -#}
 {#- ------------------------------------------------------------------------------------ -#}
 {%- macro renderQuestionExtras(question) -%}
-  {%- set resourcePageReferences = question.resource_page_reference -%}
+  {%- set resourcePageReferences = question.resource_page_references -%}
   {%- set urlReferences = question.url_references -%}
   {%- set tags = question.tags -%}
   {%- set experts = question.experts -%}
@@ -132,7 +145,7 @@
     \href{{ "{" }}{{ reference.url }}{{ "}" }}{{ "{" }}{{ reference.label }}{{ "}" }}
     {%- if not loop.last -%}, {% endif -%}{%- endfor -%}
   {%- endif -%}
-  {% if question.expertUuids|length > 0 %}
+  {% if experts|length > 0 %}
   \item \textit{Experts}: {% for expert in experts -%}
     {{expert.name}} $\langle$\href{{ "{" }}mailto:{{ expert.email }}{{ "}" }}{{ "{" }}{{ expert.email }}{{ "}" }}$\rangle$
     {%- if not loop.last -%}, {% endif -%}{%- endfor -%}
