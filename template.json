@@ -1,9 +1,9 @@
 {
-  "organizationId": "dsw",
+  "organizationId": "elixir-no",
   
-  "templateId": "questionnaire-report",
+  "templateId": "uestionnaire-report-reduced",
   "version": "2.13.1",
-  "name": "Questionnaire Report BOTT",
+  "name": "Questionnaire Report - reduced",
 
   "description": "Exported questions and answers from a questionnaire",
   "metamodelVersion": 15,
