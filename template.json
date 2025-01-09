@@ -1,12 +1,11 @@
 {
-  "organizationId": "elixir-no",
-  
-  "templateId": "uestionnaire-report-reduced",
-  "version": "2.13.1",
-  "name": "Questionnaire Report - reduced",
+  "organizationId": "research.data.no",
+  "templateId": "questionnaire-report-lean",
+  "version": "2.14.1",
+  "name": "Questionnaire Report",
 
   "description": "Exported questions and answers from a questionnaire",
-  "metamodelVersion": 15,
+  "metamodelVersion": 16,
   "license": "Apache-2.0",
   "allowedPackages": [
     {

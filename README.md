@@ -18,6 +18,14 @@ This a fork of generic *default* template for [Data Stewardship Wizard](https://
 
 ## Changelog
 
+### 2.14.1
+
+- Fixed LaTeX rendering with references
+
+### 2.14.0
+
+- Adjusted to template metamodel version 16 (released in DSW 4.13.0)
+
 ### 2.13.0
 
 - Adjusted to template metamodel version 15 (released in DSW 4.12.0)
