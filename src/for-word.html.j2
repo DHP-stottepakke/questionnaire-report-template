@@ -7,11 +7,6 @@
 {#  TAGS, REFERNCES, and EXPERTS MACROS                                                 #}
 {# ------------------------------------------------------------------------------------ #}
 {%- macro renderTags(question) -%}
-  {% if question.tags|length > 0 %}
-    <div>
-      🏷️ <b>Tags:</b> {% for tag in question.tags %}<i>{{tag.name}}</i>{% if not loop.last %}, {% endif %}{% endfor %}
-    </div>
-  {% endif %}
 {%- endmacro -%}
 {%- macro renderResourcePageReferences(question) -%}
   {% set refs = [] %}
@@ -192,7 +187,7 @@
       {{ renderAnswerFile(question, reply, path, humanIdentifier) }}
     {% endif %}
   {% else %}
-    <p>❗ <i>This question has not been answered yet!</i></p>
+    <p> <i>This question has not been answered yet</i></p>
   {% endif %}
 {%- endmacro -%}
 {%- macro renderQuestion(question, path, humanIdentifier) -%}
@@ -203,8 +198,6 @@
     {{ renderTags(question) }}
 
     {{ renderQuestionExtras(question) }}
-
-    {{ question.text|markdown }}
 
     {{ renderQuestionReply(question, path, humanIdentifier) }}
   </div>
