@@ -224,18 +224,6 @@
 \end{table}
 {% endif %}
 {%- endmacro -%}
-{%- macro renderResourceCollection(collection, humanIdentifier) -%}
-\section*{{ "{" }}{{ humanIdentifier }}. {{ collection.title }}{{ "}" }}
-
-{%- for page in collection.pages -%}
-\subsection*{{ "{" }}{{ humanIdentifier }}.{{ loop.index }}. {{ page.title }}{{ "}" }}
-
-\begin{markdown}
-{{ page.content }}
-\end{markdown}
-
-{%- endfor -%}
-{%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  INTRODUCTION                                                                        -#}
 {#- ------------------------------------------------------------------------------------ -#}
@@ -364,13 +352,6 @@
 
 {% endfor %}
 
-
-{% if dc.km.resource_collections|length > 0 %}
-\chapter*{{ "{" }}Additional Resources{{ "}" }}
-{% endif %}
-{% for resource_collection in dc.km.resource_collections %}
-{{ renderResourceCollection(resource_collection, (loop.index-1)|of_alphabet|upper) }}
-{% endfor %}
 </section>
 
 \end{document}

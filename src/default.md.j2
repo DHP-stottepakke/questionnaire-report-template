@@ -191,15 +191,6 @@
 *No questions*
 {%- endfor %}
 {%- endmacro -%}
-{%- macro renderResourceCollection(collection, humanIdentifier) -%}
-### {{ humanIdentifier }}. {{ collection.title }}
-
-{% for page in collection.pages %}
-#### {{ humanIdentifier }}.{{ loop.index }}. {{ page.title }}
-
-{{ page.content }}
-{% endfor %}
-{%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  INTRODUCTION                                                                        -#}
 {#- ------------------------------------------------------------------------------------ -#}
@@ -248,9 +239,3 @@ The named versions of this document:
 
 ---
 
-{% if dc.km.resource_collections|length > 0 %}
-## Additional Resources
-{% endif %}
-{% for resource_collection in dc.km.resource_collections %}
-{{ renderResourceCollection(resource_collection, (loop.index-1)|of_alphabet|upper) }}
-{% endfor %}
