@@ -301,34 +301,6 @@
         </section>
       </section>
 {%- endmacro -%}
-{%- macro renderResourceCollection(collection, humanIdentifier) -%}
-  <div id="resource-collection-{{collection.uuid}}" class="resource-collection">
-    <h3>{{ humanIdentifier }}. {{ collection.title }}</h3>
-      {%- for page in collection.pages -%}
-      <div id="resource-page-{{page.uuid}}" class="resource-page">
-        <h4>{{ humanIdentifier }}.{{ loop.index }}. {{ page.title }}</h4>
-        {%- set bookAckString = "with kind permission of [" -%}
-        {%- if bookAckString in page.content -%}
-            {%- set part=page.content.split('---') -%}
-            {%- set descriptionPart = part[0]+'---' -%}
-            {%- set bookAckPart = part[1] -%}
-            {% set nonBreakBookAckString = bookAckString.replace(' ', '&nbsp;') %}
-            {% set bookAckFixedPart = bookAckPart.replace(bookAckString, nonBreakBookAckString) %}
-            <div class ="resource-page-content">
-              {{ descriptionPart|markdown }}
-              <div class="resource-page-content-book-ack">
-                {{ bookAckFixedPart|markdown }}
-              </div>
-            </div>
-        {%- else -%}
-          <div class="resource-page-content">
-            {{ page.content|markdown }}
-          </div>
-        {%- endif -%}
-      </div>
-      {%- endfor -%}
-  </div>
-{%- endmacro -%}
 {# ------------------------------------------------------------------------------------ #}
 {#  HTML LAYOUT                                                                         #}
 {# ------------------------------------------------------------------------------------ #}
@@ -428,14 +400,6 @@
     {% else %}
       <p class="text-light">No chapters</p>
     {% endfor %}
-    <section class="resource-collections">
-    {% if dc.km.resource_collections|length > 0 %}
-      <h2>Additional Resources</h2>
-    {% endif %}
-    {% for resource_collection in dc.km.resource_collections %}
-      {{ renderResourceCollection(resource_collection, (loop.index-1)|of_alphabet|upper) }}
-    {% endfor %}
-    </section>
   </main>
 {%- endmacro -%}
 {# ------------------------------------------------------------------------------------ #}
