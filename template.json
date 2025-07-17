@@ -1,8 +1,10 @@
 {
-  "organizationId": "dsw",
-  "templateId": "questionnaire-report",
+  "organizationId": "research.data.no",
+  "templateId": "questionnaire-report-lean",
   "version": "2.15.0",
+
   "name": "Questionnaire Report",
+
   "description": "Exported questions and answers from a questionnaire",
   "metamodelVersion": 16,
   "license": "Apache-2.0",

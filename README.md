@@ -2,10 +2,11 @@
 
 This is a lean version of the generic *default* template for [Data Stewardship Wizard](https://ds-wizard.org) (DSW) directly transforms answers from a questionnaire into a document while maintaining the structure. It is not tied to any knowledge model.
 
-
 ## Issues and Contributing
 
 This document template for DSW is available as open-source via GitHub Repository [DHP-stottepakke/questionnaire-report-template](https://github.com/DHP-stottepakke/questionnaire-report-template), you can [report issues](https://github.com/DHP-stottepakke/questionnaire-report-template/issues) there and fork it for customisations or contributions.
+
+This a fork of generic *default* template for [Data Stewardship Wizard](https://ds-wizard.org) (DSW) directly transforms answers from a questionnaire into a document while maintaining the structure. It is not tied to any knowledge model. This is a version for an reduced output for leaner documents.
 
 
 ### Original Contributors
@@ -19,6 +20,7 @@ This document template for DSW is available as open-source via GitHub Repository
 * **Jana Martínková** <[jana.martinkova@ds-wizard.org](mailto:jana.martinkova@ds-wizard.org)>
   * ORCID: [0000-0001-8575-6533](https://orcid.org/0000-0001-8575-6533/)
   * GitHub: [@jmartinkova](https://github.com/jmartinkova)
+
 
 
 ## Changelog
@@ -46,6 +48,9 @@ This document template for DSW is available as open-source via GitHub Repository
 - Fixed check icon ItemSelectQuestion
 - Fixed text after img for resource pages
 - Fix newline in resource pages for PDF/HTML
+
+### 2.12.1
+- Reduced export
 
 ### 2.12.0
 
