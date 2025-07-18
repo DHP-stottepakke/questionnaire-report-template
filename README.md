@@ -1,11 +1,5 @@
 # Questionnaire Report
 
-This is a lean version of the generic *default* template for [Data Stewardship Wizard](https://ds-wizard.org) (DSW) directly transforms answers from a questionnaire into a document while maintaining the structure. It is not tied to any knowledge model.
-
-## Issues and Contributing
-
-This document template for DSW is available as open-source via GitHub Repository [DHP-stottepakke/questionnaire-report-template](https://github.com/DHP-stottepakke/questionnaire-report-template), you can [report issues](https://github.com/DHP-stottepakke/questionnaire-report-template/issues) there and fork it for customisations or contributions.
-
 This a fork of generic *default* template for [Data Stewardship Wizard](https://ds-wizard.org) (DSW) directly transforms answers from a questionnaire into a document while maintaining the structure. It is not tied to any knowledge model. This is a version for an reduced output for leaner documents.
 
 
