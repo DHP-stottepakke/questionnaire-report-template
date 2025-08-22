@@ -1,6 +1,5 @@
 # Questionnaire Report
 
-This a fork of generic *default* template for [Data Stewardship Wizard](https://ds-wizard.org) (DSW) directly transforms answers from a questionnaire into a document while maintaining the structure. It is not tied to any knowledge model. This is a version for an reduced output for leaner documents.
 
 
 ### Original Contributors
