@@ -15,7 +15,7 @@
 \begin{itemize}
   \item[\CheckmarkBold] 
   \begin{markdown}
-  {{ reply.value }}
+  {{ reply.value.split("![]", 1)[0] }}
   \end{markdown}
   {% if reply.is_integration -%}
   {%- set integration = question.integration -%}
@@ -247,6 +247,7 @@
 \usepackage{hyperref}
 \usepackage[hashEnumerators,smartEllipses]{markdown}
 \usepackage{progressbar}
+\usepackage{xurl}
 
 \renewcommand{\thechapter}{\Roman{chapter}}
 
