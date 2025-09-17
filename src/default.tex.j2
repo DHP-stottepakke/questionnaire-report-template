@@ -8,15 +8,9 @@
 {#- ------------------------------------------------------------------------------------ -#}
 {%- macro renderAnswerValue(question, reply, path, humanIdentifier) %}
 {%- if reply is of_type("StringReply") %}
-  {%- if question.value_type == "UrlQuestionValueType" %}
-    \begin{itemize}
-      \item[\CheckmarkBold] \url{ {{ reply.value }} }
-    \end{itemize}
-  {%- else %}
-    \begin{itemize}
-      \item[\CheckmarkBold] {{ reply.value }}
-    \end{itemize}
-  {%- endif %}
+\begin{itemize}
+  \item[\CheckmarkBold] {{ reply.value }}
+\end{itemize}
 {% else %}
 \begin{itemize}
   \item[\CheckmarkBold] 
@@ -124,7 +118,7 @@
     {%- endif -%}
   {% else %}
 \begin{itemize}
-  \item[{% if isRequired %}\textcolor{colorReqQ}{% endif %}\XSolidBrush] \textit{This question has not been answered yet!}
+  \item[{% if isRequired %}{% endif %}\XSolidBrush] \textit{This question has not been answered yet}
 \end{itemize}
   {% endif -%}
 {%- endmacro -%}
@@ -143,9 +137,8 @@
   {% endif %}
   {%- if resourcePageReferences|length > 0 %}
   \item \textit{Resource Pages}: {% for reference in resourcePageReferences -%}
-  {%- if reference.resource_page_uuid and reference.resource_page and reference.resource_page.collection -%}
-    {%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.package.id ~ '/resource-pages/' ~ reference.resource_page.uuid -%}
-    \href{{ "{" }}{{ resourcePageLink }}{{ "}" }}{{ "{" }}{{ reference.resource_page.collection.title }} - {{ reference.resource_page.title }}{{ "}" }}
+    {%- if reference.resource_page_uuid and reference.resource_page and reference.resource_page.collection -%}
+    {{ reference.resource_page.collection.title }} - {{ reference.resource_page.title }}
     {%- if not loop.last -%}, {% endif -%}{%- endif -%}{%- endfor -%}
   {%- endif -%}
   {%- if urlReferences|length > 0 %}
@@ -177,12 +170,6 @@
 
 {{ renderQuestionExtras(question) }}
 
-{% if question.text %}
-\noindent
-\begin{markdown}
-{{question.text}}
-\end{markdown}
-{% endif %}
 
 {{ renderQuestionReply(question, path, humanIdentifier) }}
 
@@ -227,11 +214,11 @@
 \section*{History of Versions}
 
 \begin{table}[h]
-	\centering
-	\begin{tabular}{ c c p{0.6\linewidth} }
-		Version & Date & Description \\ \hline\hline\Tstrut
+  \centering
+  \begin{tabular}{ c c p{0.6\linewidth} }
+    Version & Date & Description \\ \hline\hline\Tstrut
 {%- for version in dc.qtn.versions|reverse %}
-		{{ version.name }}  & {{ version.created_at|datetime_format("%d %b %Y") }} & {{ version.description }} \\ \hline\Tstrut
+    {{ version.name }}  & {{ version.created_at|datetime_format("%d %b %Y") }} & {{ version.description }} \\ \hline\Tstrut
 {%- endfor %}
   \end{tabular}
 \end{table}
@@ -246,11 +233,11 @@
 
 \usepackage{geometry}
 \geometry{
-	a4paper,
-	left=20mm,
-	top=20mm,
-	bottom=20mm,
-	right=20mm,
+  a4paper,
+  left=20mm,
+  top=20mm,
+  bottom=20mm,
+  right=20mm,
 }
 
 \usepackage{bbding}
@@ -318,11 +305,7 @@
         {%- if dc.current_phase %}
         \vspace{0.5cm}
         Project phase: {{dc.current_phase.title}}\\
-        {%- endif %}
-        {%- if dc.qtn.project_tags|length > 0 %}
-        \vspace{0.25cm}
-        Project tags: {% for tag in dc.qtn.project_tags %}{{ tag }}{% if not loop.last %}, {% endif %}{% endfor %}\\
-        {%- endif %}
+        {%- endif %}}
         {%- if dc.qtn.description %}
         \vspace{0.25cm}
         Description: {{ dc.qtn.description }}\\
@@ -370,5 +353,6 @@
 
 {% endfor %}
 
+</section>
 
 \end{document}

@@ -251,8 +251,7 @@ header .tool-info svg {
 }
 
 .question, .answer-item {
-  border-left: 5px solid #eee;
-  padding-left: 1rem
+
 }
 
 .followups {
@@ -268,9 +267,7 @@ header .tool-info svg {
   margin-top: 0;
   margin-bottom: 0.5rem;
   font-weight: bold;
-  background: #eee;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.25rem;
 }
 
 .question .title .human-identifier {
@@ -395,7 +392,6 @@ header .tool-info svg {
 }
 
 .question.required .no-answer {
-  color: #D0021B;
 }
 
 .integration-link {
@@ -468,17 +464,4 @@ div#versions td.no-versions {
   background: #eee;
   border-radius: .5rem;
   padding: 1rem;
-}
-.resource-page-content-book-ack {
-  display: flex; /* Use flexbox for layout */
-  flex-wrap: wrap; /* Allow items to wrap onto a new line */
-  align-items: center; /* Center items vertically */
-}
-.resource-page-content img{
-  max-width: 100%;
-}
-.resource-page-content-book-ack img{
-  max-width: 100%;
-  vertical-align: middle;
-  margin-right: 0.5rem;
 }

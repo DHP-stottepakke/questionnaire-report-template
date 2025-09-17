@@ -24,8 +24,7 @@
       <svg aria-hidden="true" data-prefix="fas" data-icon="book" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-inline--fa fa-book fa-w-14 fa-2x"><path fill="currentColor" d="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z" class=""></path></svg>
       <span><b>Resource Pages:</b></span>
       {% for ref in refs %}
-        {%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.package.id ~ '/resource-pages/' ~ ref.uuid -%}
-        <a id="{{ref.ref_uuid}}" class="reference resourcepage-link" href="{{ resourcePageLink }}"><i>{{ ref.collection_title }} - {{ ref.title }}</i></a>
+        <a id="{{ref.ref_uuid}}" class="reference resourcepage-link" href="#resource-page-{{ ref.uuid }}"><i>{{ ref.collection_title }} - {{ ref.title }}</i></a>
       {% endfor %}
     </div>
   {% endif %}
@@ -78,7 +77,6 @@
 {%- macro renderAnswerValue(question, reply, path, humanIdentifier) -%}
   <div class="answer-block answer-simple" id="{{path}}" data-path="{{path}}" data-type="answer">
     <p class="answer">
-      <svg aria-hidden="true" data-prefix="fas" data-icon="check" class="svg-inline--fa fa-check fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"></path></svg>
       {% if reply is of_type("StringReply") %}
         <span>{{reply.value}}</span>
       {% elif reply.is_integration or reply.is_legacy_integration %}
@@ -96,7 +94,6 @@
   {% set humanIdentifier = humanIdentifier ~ "." ~ hi|of_alphabet %}
   <div class="answer-block answer-option" id="{{path}}" data-path="{{path}}" data-uuid="{{answer.uuid}}" data-type="answer">
     <p class="answer">
-      <svg aria-hidden="true" data-prefix="fas" data-icon="check" class="svg-inline--fa fa-check fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"></path></svg>
       <span>{{ hi|of_alphabet }}. {{answer.label}}</span>
     </p>
     {% if answer.advice %}
@@ -216,8 +213,7 @@
   {% else %}
     <div class="answer-block not-answered">
       <p class="no-answer">
-        <svg aria-hidden="true" data-prefix="fas" data-icon="times" class="svg-inline--fa fa-times fa-w-11" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512"><path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path></svg>
-        <span>This question has not been answered yet!</span>
+ <span>This question has not been answered yet </span>
       </p>
     </div>
   {% endif %}
@@ -227,22 +223,9 @@
   <div class={{questionClasses(question)}} id="{{path}}" data-uuid="{{question.uuid}}" data-type="question">
     <div class="question-header">
       <h4 class="title">
-        <strong class="human-identifier">{{humanIdentifier}}</strong>
-        {{question.title}}
+        {{humanIdentifier}} {{question.title}}
       </h4>
-      
-      {% if question.tags|length > 0 %}
-      <div class="tags">
-        {% for tag in question.tags %}
-          <span class="tag" style="background-color:{{tag.color}}">{{tag.name}}</span>
-        {% endfor %}
-      </div>
-      {% endif %}
-    </div>
-
-    <div class="text">
-      {{question.text|markdown}}
-    </div>
+     </div>
 
     {{ renderQuestionExtras(question) }}
 
