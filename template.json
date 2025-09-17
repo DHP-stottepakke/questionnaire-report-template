@@ -1,12 +1,11 @@
 {
   "organizationId": "research.data.no",
   "templateId": "questionnaire-report-lean",
-  "version": "2.15.0",
-
+  "version": "2.16.0",
   "name": "Questionnaire Report",
 
   "description": "Exported questions and answers from a questionnaire",
-  "metamodelVersion": 16,
+  "metamodelVersion": "17.0",
   "license": "Apache-2.0",
   "allowedPackages": [
     {
