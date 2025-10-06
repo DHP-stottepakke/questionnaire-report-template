@@ -1,6 +1,6 @@
 # Questionnaire Report
 
-
+This a fork of generic default template for [Data Stewardship Wizard (DSW)](https://ds-wizard.org/) directly transforms answers from a questionnaire into a document while maintaining the structure. It is not tied to any knowledge model. This is a version for an reduced output for leaner documents.
 
 ### Original Contributors
 
@@ -14,6 +14,11 @@
   * ORCID: [0000-0001-8575-6533](https://orcid.org/0000-0001-8575-6533/)
   * GitHub: [@jmartinkova](https://github.com/jmartinkova)
 
+### Edits
+
+* **Korbinian Bösl** <[korbinian.bosl@uib.no](mailto:korbinian.bosl@uib.no)>
+  * ORCID: [0000-0003-0498-4273](https://orcid.org/0000-0003-0498-4273)
+  * GitHub: [@korbinib](https://github.com/korbinib)
 
 
 ## Changelog
