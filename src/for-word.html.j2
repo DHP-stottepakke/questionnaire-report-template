@@ -4,14 +4,9 @@
 {# ------------------------------------------------------------------------------------ #}
 {%- set dc = ctx|to_context_obj -%}
 {# ------------------------------------------------------------------------------------ #}
-{#  TAGS, REFERENCES, and EXPERTS MACROS                                                 #}
+{#  TAGS, REFERNCES, and EXPERTS MACROS                                                 #}
 {# ------------------------------------------------------------------------------------ #}
 {%- macro renderTags(question) -%}
-  {% if question.tags|length > 0 %}
-    <div>
-      🏷️ <b>Tags:</b> {% for tag in question.tags %}<i>{{tag.name}}</i>{% if not loop.last %}, {% endif %}{% endfor %}
-    </div>
-  {% endif %}
 {%- endmacro -%}
 {%- macro renderResourcePageReferences(question) -%}
   {% set refs = [] %}
@@ -27,7 +22,7 @@
   {% endfor %}
   {% if refs|length > 0 %}
     <div>
-      📖 <b>Resource Pages:</b> {% for ref in refs %}{%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.package.id ~ '/resource-pages/' ~ ref.uuid -%}<a id="{{ref.ref_uuid}}" class="reference resourcepage-link" href="{{ resourcePageLink }}"><i>{{ ref.collection_title }} - {{ ref.title }}</i></a>{% if not loop.last %}, {% endif %}{% endfor %}
+      📖 <b>Resource Pages:</b> {% for ref in refs %}<i>{{ref.collection_title}} - {{ref.title}}</i>{% if not loop.last %}, {% endif %}{% endfor %}
     </div>
   {% endif %}
 {%- endmacro -%}
@@ -192,7 +187,7 @@
       {{ renderAnswerFile(question, reply, path, humanIdentifier) }}
     {% endif %}
   {% else %}
-    <p>❗ <i>This question has not been answered yet!</i></p>
+    <p> <i>This question has not been answered yet</i></p>
   {% endif %}
 {%- endmacro -%}
 {%- macro renderQuestion(question, path, humanIdentifier) -%}
@@ -203,8 +198,6 @@
     {{ renderTags(question) }}
 
     {{ renderQuestionExtras(question) }}
-
-    {{ question.text|markdown }}
 
     {{ renderQuestionReply(question, path, humanIdentifier) }}
   </div>
