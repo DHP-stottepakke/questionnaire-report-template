@@ -1,125 +1,159 @@
 {
-  "organizationId": "research.data.no",
-  "templateId": "questionnaire-report",
-  "version": "2.16.1",
-  "name": "Questionnaire Report",
-
-  "description": "Exported questions and answers from a questionnaire",
-  "metamodelVersion": "17.1",
-  "license": "Apache-2.0",
-  "allowedPackages": [
-    {
-      "orgId": null,
-      "kmId": null,
-      "minVersion": null,
-      "maxVersion": null
-    }
-  ],
-  "formats": [ 
-    {
-        "uuid" : "d3e98eb6-344d-481f-8e37-6a67b6cd1ad2",
-        "name" : "JSON Data",
-        "icon" : "far fa-file",
-        "steps" : [ 
-            {
-                "name" : "json",
-                "options" : {}
-            }
-        ]
-    }, 
-    {
-        "uuid" : "a9293d08-59a4-4e6b-ae62-7a6a570b031c",
-        "name" : "HTML Document",
-        "icon" : "far fa-file-code",
-        "steps" : [ 
-            {
-                "name" : "jinja",
-                "options" : {
-                    "template" : "src/default.html.j2",
-                    "content-type" : "text/html",
-                    "extension" : "html"
-                }
-            }
-        ]
-    }, 
-    {
-        "uuid" : "68c26e34-5e77-4e15-9bf7-06ff92582257",
-        "name" : "PDF Document",
-        "icon" : "far fa-file-pdf",
-        "steps" : [ 
-            {
-                "name" : "jinja",
-                "options" : {
-                    "template" : "src/default.html.j2",
-                    "content-type" : "text/html",
-                    "extension" : "html"
-                }
-            }, 
-            {
-                "name" : "weasyprint",
-                "options" : {}
-            }
-        ]
-    }, 
-    {
-        "uuid" : "dbc94579-40d7-42c3-975c-71e30d07778b",
-        "name" : "LaTeX Document",
-        "icon" : "far fa-file-alt",
-        "steps" : [ 
-            {
-                "name" : "jinja",
-                "options" : {
-                    "template" : "src/default.tex.j2",
-                    "content-type" : "text/x-tex",
-                    "extension" : "tex"
-                }
-            }
-        ]
-    }, 
-    {
-        "uuid" : "f4bd941a-dfbe-4226-a1fc-200fb5269311",
-        "name" : "MS Word Document",
-        "icon" : "far fa-file-word",
-        "steps" : [ 
-            {
-                "name" : "jinja",
-                "options" : {
-                    "template" : "src/for-word.html.j2",
-                    "content-type" : "text/html",
-                    "extension" : "html"
-                }
-            }, 
-            {
-                "name" : "pandoc",
-                "options" : {
-                    "from" : "html",
-                    "to" : "docx",
-                    "args": "--filter=pandoc-docx-pagebreakpy --reference-doc=src/reference.docx"
-                }
-            }
-        ]
-    },
-    {
-        "uuid" : "f0533e48-f4c5-4af2-b2c1-5a47d4a247c0",
-        "name" : "Markdown Document",
-        "icon" : "far fa-file-alt",
-        "steps" : [ 
-            {
-                "name" : "jinja",
-                "options" : {
-                    "template" : "src/default.md.j2",
-                    "content-type" : "text/html",
-                    "extension" : "md"
-                }
-            }
-        ]
-    }
-  ],
-  "_tdk": {
-    "version": "4.1.0",
-    "readmeFile": "README.md",
-    "files": [
-      "src/**/*"
-    ]
-  }
+	"allowedPackages": [
+		{
+			"kmId": null,
+			"maxVersion": null,
+			"minVersion": null,
+			"orgId": null
+		}
+	],
+	"assets": [
+		{
+			"contentType": "application/octet-stream",
+			"fileName": "src/default.html.j2",
+			"uuid": "ae4797b9-d90c-4c7f-938d-efd1106596a3"
+		},
+		{
+			"contentType": "application/octet-stream",
+			"fileName": "src/default.md.j2",
+			"uuid": "9d981738-a5ab-486b-a38b-a9f69cbface6"
+		},
+		{
+			"contentType": "application/octet-stream",
+			"fileName": "src/for-word.html.j2",
+			"uuid": "5d3e3d86-023f-441e-8407-1df4d6fa90fa"
+		},
+		{
+			"contentType": "application/octet-stream",
+			"fileName": "src/default.tex.j2",
+			"uuid": "46dcf90c-9ffb-430f-921c-81d6856970e5"
+		},
+		{
+			"contentType": "application/octet-stream",
+			"fileName": "src/globals.j2",
+			"uuid": "a52b2a7a-b5ae-4294-9214-b3b38e72d779"
+		},
+		{
+			"contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			"fileName": "src/reference.docx",
+			"uuid": "db57718b-8b77-4ec1-b4c9-ca5e623eb862"
+		}
+	],
+	"createdAt": "2025-09-17T11:48:41.978626Z",
+	"description": "Exported questions and answers from a questionnaire",
+	"files": [
+		{
+			"content": "/* General styles */\n@page {\n  size: A4;\n\n  @bottom-left {\n    border-top: 1px solid black;\n    content: '';\n    display: block;\n    width: 100%;\n    padding-top: 1rem;\n    vertical-align: top;\n    font-family: \"Open Sans\", sans-serif;\n    font-size: 10pt;\n  }\n  @bottom-center {\n    border-top: 1px solid black;\n    content: '';\n    display: block;\n    width: 100%;\n    padding-top: 1rem;\n    vertical-align: top;\n    font-family: \"Open Sans\", sans-serif;\n    font-size: 10pt;\n  }\n  @bottom-center {\n    border-top: 1px solid black;\n    content: counter(page) \" / \" counter(pages);\n    display: block;\n    width: 100%;\n    padding-top: 1rem;\n    vertical-align: top;\n    font-family: \"Open Sans\", sans-serif;\n    font-size: 10pt;\n  }\n}\n@page :blank {\n  @top-center { content: none }\n  @bottom-left { content: none }\n  @bottom-center { content: none }\n  @bottom-right { content: none }\n}\n@page :first {\n  @top-center { content: none }\n  @bottom-left { content: none }\n  @bottom-center { content: none }\n  @bottom-right { content: none }\n}\n\nh1, h2, h3, h4, h5, h6 {\n  page-break-inside: avoid !important;\n  page-break-after: avoid !important;\n}\n\nbody {\n  max-width: 21cm;\n  margin: auto;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 10pt;\n  line-height: 1.5;\n}\n\nh1 {\n  font-size: 22pt;\n}\n\nh1, h2, h3, h4, h5, h6 {\n  color: #333;\n}\n\na {\n  color: #049;\n}\n\n.text-light {\n  color: #868e96!important;\n}\n\n.text-muted {\n  color: #AEA79F!important;\n}\n\ntable {\n  width: 100%;\n}\n\n\n/* Front page */\n\nheader {\n  height: 25cm;\n  position: relative;\n}\n\nheader h1 {\n  padding: 7rem 0 4rem 0;\n}\n\nheader .dmp-data {\n  margin-top: 5rem;\n  width: 100%;\n}\n\nheader .dmp-data td, header .dmp-data th {\n  text-align: left;\n  padding: 0.5rem 0;\n}\n\nheader .dmp-data th {\n  min-width: 9em;\n}\n\nheader .dmp-data .project-tag {\n  background-color: #6c757d;\n  margin-bottom: 0.25rem;\n}\n\nheader .tool-info {\n  text-align: center;\n  margin: 0;\n  padding-top: 2rem;\n  color: #868e96;\n  position: absolute;\n  bottom: 0;\n  width: 100%;\n}\n\nheader .tool-info svg {\n  height: 3rem;\n  display: block;\n  margin: auto;\n}\n\n\n/* Total report section */\n\n.total-report {\n  page-break-after: always;\n}\n\n/* Metrics and indications report */\n\n.report {\n  margin-top: 1rem;\n  margin-bottom: 3rem;\n  background: #eee;\n  border-radius: .5rem;\n  padding: 1rem;\n}\n\n.report h3 {\n  margin-top: 0;\n}\n\n.report table {\n  border-spacing: 0 .5rem;\n}\n\n.report .metrics {\n  margin-top: 1rem;\n}\n\n.report .metrics table th {\n  text-align: left;\n  padding: 0;\n}\n\n.report .table-label {\n  width: 40%;\n}\n\n.report .progress-cell {\n  width: 50%;\n}\n\n.report .progress {\n  position: relative;\n  height: .75rem;\n  background: #ddd;\n  border-radius: .25rem;\n}\n\n.report .progress-fill {\n  position: absolute;\n  left: 0;\n  height: 100%;\n  background: #17a2b8;\n  border-radius: .25rem;\n}\n\n.report .progress-fill.bg-value-100 {\n  background:#28a745;\n}\n\n.report .progress-fill.bg-value-90 {\n  background:#53ac39;\n}\n\n.report .progress-fill.bg-value-80 {\n  background:#7eb12c;\n}\n\n.report .progress-fill.bg-value-70 {\n  background:#a9b720;\n}\n\n.report .progress-fill.bg-value-60 {\n  background:#d4bc13;\n}\n\n.report .progress-fill.bg-value-50 {\n  background:#ffc107;\n}\n\n.report .progress-fill.bg-value-40 {\n  background:#f8a513;\n}\n  \n.report .progress-fill.bg-value-30 {\n  background:#f18920;\n}\n\n.report .progress-fill.bg-value-20 {\n  background:#ea6d2c;\n}\n\n.report .progress-fill.bg-value-10 {\n  background:#e35139;\n}\n\n.report .progress-fill.bg-value-0 {\n  background:#dc3545;\n}\n\n\n/* Chapter */\n\n.chapter {\n  page-break-before: always;\n  margin-bottom: 5rem;\n}\n\n\n/* Question */\n\n.question:not(:last-child) {\n  padding-bottom: 3rem;\n}\n\n.answer-item:not(:last-child) {\n  margin-bottom: 3rem;\n}\n\n.question, .answer-item {\n\n}\n\n.followups {\n  margin-top: 2rem;\n}\n\n.answer-item > .followups > .question, .questions > .question {\n  border: none;\n  padding-left: 0;\n}\n\n.question-header h4 {\n  margin-top: 0;\n  margin-bottom: 0.5rem;\n  font-weight: bold;\n  border-radius: 0.25rem;\n}\n\n.question .title .human-identifier {\n  display: block;\n  margin-bottom: 0.25rem;\n  font-size: 8pt;\n}\n\n.question .question-header {\n  page-break-inside: avoid;\n}\n\n.question .tag,\n.dmp-data .tag {\n  padding: .125rem 0.5rem;\n  color: #fff;\n  font-size: 8pt;\n  font-weight: bold;\n  border-radius: 0.25rem;\n  margin-right: 0.25rem;\n}\n\n.question .text {\n  margin-top: 0;\n  margin-bottom: 0.75rem;\n  color: #6c757d;\n  page-break-inside: avoid !important;\n}\n\n.question > .extra-data {\n  margin-bottom: 0.75rem;\n  color: #6c757d;\n}\n\n.question b {\n  font-weight: normal;\n}\n\n.advice {\n  background: #d1ecf1;\n  padding: 1rem;\n  border-radius: 0.5rem;\n  color: #0c5460;\n  margin: 1rem 0;\n}\n\n.advice > *:first-child {\n  margin-top: 0;\n}\n\n.advice > *:last-child {\n  margin-bottom: 0;\n}\n\n\n/* Experts and references */\n.experts, .references {\n  color: #868e96;\n  line-height: 1.5;\n}\n\n.experts b, .reference b,\n.experts a, .reference a {\n  vertical-align: middle;\n}\n\n.experts svg, .references svg {\n  width: 13px;\n  height: 14px;\n  margin-right: 7px;\n  vertical-align: middle;\n  color: #495057;\n}\n\n.expert::after, .reference::after {\n  content: \",\";\n}\n\n.expert:last-of-type::after, .reference:last-of-type::after {\n  content: \" \";\n}\n\n\n/* Answers */\n\n.choices-list {\n  list-style-type: none;\n}\n\n.choices-list .choice {\n  display: flex;\n  align-items: center;\n}\n\n.choices-list .choice.choice-unselected {\n  color: gray;\n}\n\n.answer p, .no-answer p {\n  margin: 0;\n}\n\n.answer-block .answer span {\n  vertical-align: middle;\n}\n\n.answer-block .answer svg,\n.no-answer svg,\n.choice svg {\n  height: 20px;\n  width: 20px;\n  margin-right: 0.3rem;\n  vertical-align: middle;\n}\n\n.no-answer {\n  font-style: italic;\n}\n\n.no-answer span {\n  vertical-align: middle;\n}\n\n.question.required .no-answer {\n}\n\n.integration-link {\n  display: flex;\n  align-items: center;\n}\n\n.integration-link img {\n  max-height: 2rem;\n  margin-right: .5rem;\n}\n\n.metrics > p {\n  font-style: italic;\n  margin-top: 0;\n}\n\n\n/* Versions */\ndiv#versions table {\n  width: 100%;\n  border-collapse: collapse;\n}\n\ndiv#versions table,\ndiv#versions td,\ndiv#versions th {\n  border: 1px solid #868e96;\n}\n\ndiv#versions td,\ndiv#versions th {\n  padding: 0.2em;\n}\n\ndiv#versions th.title {\n  text-transform: uppercase;\n}\n\ndiv#versions td.version-name {\n  text-align: center;\n  word-wrap: break-word;\n}\n\ndiv#versions td.version-date {\n  text-align: center;\n  width: 18ex;\n}\n\ndiv#versions td.version-changes {\n  word-wrap: break-word;\n}\n\ndiv#versions td.no-versions {\n  font-style: italic;\n  padding: 1em;\n  text-align: center;\n}\n\n/* Resource collections and pages */\n.resource-collection {\n  margin-left: .5rem;\n}\n.resource-page {\n  margin-left: .5rem;\n}\n.resource-page-content {\n  margin-top: 1rem;\n  margin-bottom: 3rem;\n  background: #eee;\n  border-radius: .5rem;\n  padding: 1rem;\n}",
+			"fileName": "src/default.css",
+			"uuid": "b97ce116-1411-49ad-b0dc-17da866af686"
+		}
+	],
+	"formats": [
+		{
+			"icon": "far fa-file-code",
+			"name": "HTML Document",
+			"steps": [
+				{
+					"name": "jinja",
+					"options": {
+						"content-type": "text/html",
+						"extension": "html",
+						"template": "src/default.html.j2"
+					}
+				}
+			],
+			"uuid": "a9293d08-59a4-4e6b-ae62-7a6a570b031c"
+		},
+		{
+			"icon": "far fa-file",
+			"name": "JSON Data",
+			"steps": [
+				{
+					"name": "json",
+					"options": {}
+				}
+			],
+			"uuid": "d3e98eb6-344d-481f-8e37-6a67b6cd1ad2"
+		},
+		{
+			"icon": "far fa-file-alt",
+			"name": "LaTeX Document",
+			"steps": [
+				{
+					"name": "jinja",
+					"options": {
+						"content-type": "text/x-tex",
+						"extension": "tex",
+						"template": "src/default.tex.j2"
+					}
+				}
+			],
+			"uuid": "dbc94579-40d7-42c3-975c-71e30d07778b"
+		},
+		{
+			"icon": "far fa-file-alt",
+			"name": "Markdown Document",
+			"steps": [
+				{
+					"name": "jinja",
+					"options": {
+						"content-type": "text/html",
+						"extension": "md",
+						"template": "src/default.md.j2"
+					}
+				}
+			],
+			"uuid": "f0533e48-f4c5-4af2-b2c1-5a47d4a247c0"
+		},
+		{
+			"icon": "far fa-file-word",
+			"name": "MS Word Document",
+			"steps": [
+				{
+					"name": "jinja",
+					"options": {
+						"content-type": "text/html",
+						"extension": "html",
+						"template": "src/for-word.html.j2"
+					}
+				},
+				{
+					"name": "pandoc",
+					"options": {
+						"args": "--filter=pandoc-docx-pagebreakpy --reference-doc=src/reference.docx",
+						"from": "html",
+						"to": "docx"
+					}
+				}
+			],
+			"uuid": "f4bd941a-dfbe-4226-a1fc-200fb5269311"
+		},
+		{
+			"icon": "far fa-file-pdf",
+			"name": "PDF Document",
+			"steps": [
+				{
+					"name": "jinja",
+					"options": {
+						"content-type": "text/html",
+						"extension": "html",
+						"template": "src/default.html.j2"
+					}
+				},
+				{
+					"name": "weasyprint",
+					"options": {}
+				}
+			],
+			"uuid": "68c26e34-5e77-4e15-9bf7-06ff92582257"
+		}
+	],
+	"id": "research.data.no:questionnaire-report-lean:2.16.0",
+	"license": "Apache-2.0",
+	"metamodelVersion": "17.0",
+	"name": "Questionnaire Report - lean",
+	"organizationId": "research.data.no",
+	"readme": "# Questionnaire Report\n\nThis a fork of generic *default* template for [Data Stewardship Wizard](https://ds-wizard.org) (DSW) directly transforms answers from a questionnaire into a document while maintaining the structure. It is not tied to any knowledge model. This is a version for an reduced output for leaner documents.\n\n### Original Contributors\n\n* **Marek Suchánek** <[marek.suchanek@ds-wizard.org](mailto:marek.suchanek@ds-wizard.org)>\n  * ORCID: [0000-0001-7525-9218](https://orcid.org/0000-0001-7525-9218)\n  * GitHub: [@MarekSuchanek](https://github.com/MarekSuchanek)\n* **Kryštof Komanec** <[krystof.komanec@ds-wizard.org](mailto:krystof.komanec@ds-wizard.org)>\n  * ORCID: [0000-0003-3856-1682](https://orcid.org/0000-0003-3856-1682)\n  * GitHub: [@krystofkomanec](https://github.com/krystofkomanec)\n* **Jana Martínková** <[jana.martinkova@ds-wizard.org](mailto:jana.martinkova@ds-wizard.org)>\n  * ORCID: [0000-0001-8575-6533](https://orcid.org/0000-0001-8575-6533/)\n  * GitHub: [@jmartinkova](https://github.com/jmartinkova)\n\n\n\n## Changelog\n\n\n### 2.16.0\n\n- Adjusted to template metamodel version 17.0 (released in DSW 4.22.0)\n\n\n### 2.15.0\n\n- Remove External Resource Pages listing\n- Improve URL to External Resource Page for LateX\n- Add URL to External Resource Page for PDF/HTML, Markdown, Word\n\n\n### 2.14.2\n\n- Removed book chapters in render\n\n### 2.14.1\n\n- Fixed LaTeX rendering with references\n\n### 2.14.0\n\n- Adjusted to template metamodel version 16 (released in DSW 4.13.0)\n\n### 2.13.0\n\n- Adjusted to template metamodel version 15 (released in DSW 4.12.0)\n- Fixed experts\n- Improved reply to value questions\n- Improved resource pages\n- Fixed check icon ItemSelectQuestion\n- Fixed text after img for resource pages\n- Fix newline in resource pages for PDF/HTML\n\n### 2.12.1\n\n- Reduced export\n\n### 2.12.0\n\n- Adjusted to template metamodel version 14 (released in DSW 4.10.0)\n- Added support for item select question\n- Added support for resource collections and pages (resource page references)\n\n### 2.11.1\n\n- Fixed nested bullet points would display unwanted characters\n\n### 2.11.0\n\n- Adjusted to template metamodel version 13 (released in DSW 4.3.0)\n\n### 2.10.1\n\n- Fixed broken images in Word\n\n### 2.10.0\n\n- Adjusted to template metamodel version 12 (released in DSW 4.1.0)\n- Integrations should not have the link inside the item template (item URL will not be generated)\n\n### 2.9.0\n\n- Switched from `wkhtmltopdf` to `weasyprint` for PDF\n- Improved styling for PDF and HTML\n\n### 2.8.0\n\n- Adjusted to template metamodel version 11 (released in DSW 3.20.0)\n- Added versions overview / change tracker table\n\n### 2.7.1\n\n- Fixed Markdown rendering for integration question reply\n\n### 2.7.0\n\n- Adjusted to template metamodel version 10 (released in DSW 3.12.0)\n\n### 2.6.0\n\n- Adjusted to template metamodel version 9 (released in DSW 3.10.0)\n\n### 2.5.0\n\n- Adjusted to template metamodel version 8 (released in DSW 3.8.0)\n\n### 2.4.0\n\n- Adjusted to template metamodel version 7 (released in DSW 3.7.0)\n\n### 2.3.0\n\n- Adjusted to template metamodel version 6 (released in DSW 3.6.0)\n\n### 2.2.0\n\n- Using new document context\n\n### 2.1.0\n\n- Adjusted to template metamodel version 5 (released in DSW 3.5.0)\n\n### 2.0.0\n\n- Improved template visual\n\n### 1.4.0\n\n- Adjusted to template metamodel version 4 (released in DSW 3.2.0)\n\n### 1.3.0\n\n- Adjusted to template metamodel version 3 (released in DSW 2.12.0)\n\n### 1.2.1\n\n- Fixed issue with multiple tags on questions\n\n### 1.2.0\n\n- Added support for Multi-Choice questions (released in DSW 2.11.0)\n\n### 1.1.0\n\n- Adjusted to template metamodel version 2\n\n### 1.0.0\n\n- Initial version previously distributed as files directly in DSW\n",
+	"templateId": "questionnaire-report-lean",
+	"version": "2.16.1"
 }
