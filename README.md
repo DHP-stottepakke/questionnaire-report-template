@@ -25,6 +25,10 @@ This lean version is following the main release cycle.
 
 ## Changelog
 
+### 2.16.1
+
+- Adjusted to template metamodel version 17.1 (released in DSW 4.26.0)
+
 ### 2.16.0
 
 - Adjusted to template metamodel version 17.0 (released in DSW 4.22.0)
