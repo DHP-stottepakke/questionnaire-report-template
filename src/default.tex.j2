@@ -123,7 +123,7 @@
     {%- endif -%}
   {% else %}
 \begin{itemize}
-  \item[{% if isRequired %}\textcolor{colorReqQ}{% endif %}\XSolidBrush] \textit{This question has not been answered yet!}
+  \item[{% if isRequired %}{% endif %}\XSolidBrush] \textit{This question has not been answered yet}
 \end{itemize}
   {% endif -%}
 {%- endmacro -%}
@@ -176,12 +176,6 @@
 
 {{ renderQuestionExtras(question) }}
 
-{% if question.text %}
-\noindent
-\begin{markdown}
-{{question.text}}
-\end{markdown}
-{% endif %}
 
 {{ renderQuestionReply(question, path, humanIdentifier) }}
 
@@ -245,11 +239,11 @@
 
 \usepackage{geometry}
 \geometry{
-	a4paper,
-	left=20mm,
-	top=20mm,
-	bottom=20mm,
-	right=20mm,
+  a4paper,
+  left=20mm,
+  top=20mm,
+  bottom=20mm,
+  right=20mm,
 }
 
 \usepackage{bbding}
@@ -318,10 +312,6 @@
         \vspace{0.5cm}
         Project phase: {{dc.current_phase.title}}\\
         {%- endif %}
-        {%- if dc.project.project_tags|length > 0 %}
-        \vspace{0.25cm}
-        Project tags: {% for tag in dc.project.project_tags %}{{ tag }}{% if not loop.last %}, {% endif %}{% endfor %}\\
-        {%- endif %}
         {%- if dc.project.description %}
         \vspace{0.25cm}
         Description: {{ dc.project.description }}\\
@@ -369,5 +359,6 @@
 
 {% endfor %}
 
+</section>
 
 \end{document}
