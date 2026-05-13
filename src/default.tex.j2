@@ -13,7 +13,10 @@
     \end{itemize}
   {%- else %}
     \begin{itemize}
-      \item[\CheckmarkBold] {{ reply.markdown_plain }}
+      \item[\CheckmarkBold]
+      \begin{markdown}
+      {{ reply.markdown_plain | regex_replace('!\[[^\]]*\]\([^\)]*\)', '') | trim }}
+      \end{markdown}
     \end{itemize}
   {%- endif %}
 {% else %}
@@ -58,7 +61,7 @@
 {% set hiPrefix = humanIdentifier ~ "." %}
 {% if question.followups|length > 0 and question.followups|length < 6 %}
 \begin{table}[h]
-\begin{tabular}{| l |{% for fq in question.followups %} p{{% if question.followups|length == 1 %}0.8{% elif question.followups|length == 2 %}0.38{% elif question.followups|length == 3 %}0.24{% elif question.followups|length == 4 %}0.17{% else %}0.13{% endif %}\textwidth} |{% endfor %}}
+\begin{tabular}{| l |{% for fq in question.followups %} p{{ "{" }}{%- if question.followups|length == 1 %}0.8{%- elif question.followups|length == 2 %}0.38{%- elif question.followups|length == 3 %}0.24{%- elif question.followups|length == 4 %}0.17{%- else %}0.13{%- endif %}\textwidth} |{% endfor %}}
 \hline
 \textbf{\#} & {% for fq in question.followups %}\textbf{ {{- fq.title | replace("_","\_") | replace("&","\&") | replace("%","\%") | replace("#","\#") -}} }{% if not loop.last %} & {% endif %}{% endfor %} \\
 \hline
@@ -144,16 +147,6 @@ No answer items
   {%- set experts = question.experts -%}
   {%- if resourcePageReferences|length > 0 or urlReferences|length > 0 or tags|length > 0 or experts|length > 0 %}
 \begin{itemize}
-  {%- if tags|length > 0 %}
-  \item \textit{Tags}: {% for tag in tags %}{% set color = tag.color[1:] if tag.color[0] == "#" else tag.color %}\setulcolor{{ "{" }}{{color}}{{ "}" }}\ul{{ "{" }}{{tag.name}}{{ "}" }}{% if not loop.last%}, {% endif %}{% endfor %}
-  {% endif %}
-  {%- if resourcePageReferences|length > 0 %}
-  \item \textit{Resource Pages}: {% for reference in resourcePageReferences -%}
-  {%- if reference.resource_page_uuid and reference.resource_page and reference.resource_page.collection -%}
-    {%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.pkg.id ~ '/resource-pages/' ~ reference.resource_page.uuid -%}
-    \href{{ "{" }}{{ resourcePageLink }}{{ "}" }}{{ "{" }}{{ reference.resource_page.collection.title }} - {{ reference.resource_page.title }}{{ "}" }}
-    {%- if not loop.last -%}, {% endif -%}{%- endif -%}{%- endfor -%}
-  {%- endif -%}
   {%- if urlReferences|length > 0 %}
   \item \textit{External Links}: {% for reference in urlReferences -%}
     \href{{ "{" }}{{ reference.url }}{{ "}" }}{{ "{" }}{{ reference.label }}{{ "}" }}
@@ -365,7 +358,5 @@ No answer items
 {% endfor %}
 
 {% endfor %}
-
-</section>
 
 \end{document}

@@ -68,16 +68,17 @@
 {%- set path = path ~ "." ~ answer.uuid -%}
 {%- set humanIdentifier = humanIdentifier ~ "." ~ hi|of_alphabet -%}
 ✔️ {{ hi|of_alphabet }}. {{answer.label}}
-{% if answer.advice -%}
+{% if answer.advice %}
+
 💡 {{answer.advice}}
-{%- endif -%}
-{%- if answer.followups|length > 0 -%}
-{%- set hiPrefix = humanIdentifier ~ "." -%}
-{%- for question in answer.followups -%}
-{%- set x = loop.index -%}
-{{ renderQuestion(question, path, hiPrefix ~ x) }}
-{%- endfor -%}
-{%- endif -%}
+{% endif %}
+{% if answer.followups|length > 0 %}
+{% set hiPrefix = humanIdentifier ~ "." %}
+{% for subQuestion in answer.followups %}
+{% set x = loop.index %}
+{{ renderQuestion(subQuestion, path, hiPrefix ~ x) }}
+{% endfor %}
+{% endif %}
 {%- endmacro -%}
 {%- macro renderAnswerList(question, reply, path, humanIdentifier) -%}
 {% set itemPathPrefix = path ~ "." %}
@@ -136,36 +137,41 @@
 {{- renderExperts(question) -}}
 {%- endmacro -%}
 {%- macro renderQuestionReply(question, path, humanIdentifier) -%}
-{%- set reply = question.replies.get(path) -%}
-{%- if reply and reply.value -%}
-{%- if question is of_type("ValueQuestion") and reply is of_type("StringReply") -%}
+{% set reply = question.replies.get(path) %}
+{% if reply and reply.value %}
+{% if question is of_type("ValueQuestion") and reply is of_type("StringReply") %}
 {{ renderStringValue(question, reply, path, humanIdentifier) }}
-{%- elif question is of_type("OptionsQuestion") and reply is of_type("AnswerReply") -%}
+{% elif question is of_type("OptionsQuestion") and reply is of_type("AnswerReply") %}
 {{ renderAnswerOption(question, reply, path, humanIdentifier) }}
-{%- elif question is of_type("ListQuestion") and reply is of_type("ItemListReply") -%}
+{% elif question is of_type("ListQuestion") and reply is of_type("ItemListReply") %}
 {{ renderAnswerList(question, reply, path, humanIdentifier) }}
-{%- elif question is of_type("IntegrationQuestion") and reply is of_type("IntegrationReply") -%}
+{% elif question is of_type("IntegrationQuestion") and reply is of_type("IntegrationReply") %}
 {{ renderIntegrationValue(question, reply, path, humanIdentifier) }}
-{%- elif question is of_type("MultiChoiceQuestion") and reply is of_type("MultiChoiceReply") -%}
+{% elif question is of_type("MultiChoiceQuestion") and reply is of_type("MultiChoiceReply") %}
 {{ renderAnswerChoiceList(question, reply, path, humanIdentifier) }}
 {% elif question is of_type("ItemSelectQuestion") and reply is of_type("ItemSelectReply") %}
 {{ renderAnswerItemSelect(question, reply, path, humanIdentifier) }}
 {% elif question is of_type("FileQuestion") and reply is of_type("FileReply") %}
 {{ renderAnswerFile(question, reply, path, humanIdentifier) }}
-{%- endif -%}
-{%- else %}
+{% endif %}
+{% else %}
+
 ❗ *This question has not been answered yet!*
-{%- endif -%}
+{% endif %}
 {%- endmacro -%}
 {%- macro renderQuestion(question, path, humanIdentifier) -%}
-{%- set path = path ~ "." ~ question.uuid %}
+{% set path = path ~ "." ~ question.uuid %}
+
 #### {{humanIdentifier}} {{question.title}}
-{{- renderTags(question) -}}
-{{- renderQuestionExtras(question) -}}
-{%- if question.text %}
+
+{{ renderTags(question) }}
+{{ renderQuestionExtras(question) }}
+{% if question.text %}
 > {{ question.text.replace("\n", "\n> ") }}
-{%- endif %}
+
+{% endif %}
 {{ renderQuestionReply(question, path, humanIdentifier) }}
+
 {%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  CHAPTER MACROS                                                                      -#}
