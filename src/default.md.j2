@@ -8,50 +8,97 @@
 {%- macro renderTags(question) -%}
 {%- endmacro -%}
 {%- macro renderResourcePageReferences(question) -%}
-{% set refs = [] %}
-{% for ref in question.resource_page_references %}
-{% if ref.resource_page_uuid and ref.resource_page and ref.resource_page.collection %}
-{% do refs.append({
+{%- set refs = [] -%}
+{%- for ref in question.resource_page_references -%}
+{%- if ref.resource_page_uuid and ref.resource_page and ref.resource_page.collection -%}
+{%- do refs.append({
     'ref_uuid': ref.uuid,
     'uuid': ref.resource_page_uuid,
     'collection_title': ref.resource_page.collection.title,
     'title': ref.resource_page.title,
-}) %}
-{% endif %}
-{% endfor %}
-{% if refs|length > 0 %}
+}) -%}
+{%- endif -%}
+{%- endfor -%}
+{%- if refs|length > 0 %}
 * 📖 **Resource Pages:** {% for ref in refs %}{%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.pkg.id ~ '/resource-pages/' ~ ref.uuid -%}[{{ ref.collection_title }} - {{ ref.title }}]({{resourcePageLink}}){% if not loop.last %}, {% endif %}{% endfor %}
-{% endif %}
+{%- endif -%}
 {%- endmacro -%}
 {%- macro renderURLReferences(question) -%}
-{% set refs = [] %}
-{% for ref in question.url_references %}
-{% if ref.label and ref.url %}
-{% do refs.append({
+{%- set refs = [] -%}
+{%- for ref in question.url_references -%}
+{%- if ref.label and ref.url -%}
+{%- do refs.append({
     'uuid': ref.uuid,
     'label': ref.label,
     'url': ref.url,
-}) %}
-{% endif %}
-{% endfor %}
-{% if refs|length > 0 %}
+}) -%}
+{%- endif -%}
+{%- endfor -%}
+{%- if refs|length > 0 %}
 * 🔗 **External links**: {% for reference in refs %}[{{reference.label}}]({{reference.url}}){% if not loop.last %}, {% endif %}{% endfor %}
 {%- endif -%}
 {%- endmacro -%}
 {%- macro renderExperts(question) -%}
-{% set experts = [] %}
-{% for expert in question.experts %}
-{% if expert.name and expert.email %}
-{% do experts.append({
+{%- set experts = [] -%}
+{%- for expert in question.experts -%}
+{%- if expert.name and expert.email -%}
+{%- do experts.append({
     'uuid': expert.uuid,
     'email': expert.email,
     'name': expert.name,
-}) %}
-{% endif %}
-{% endfor %}
-{% if experts|length > 0 %}
+}) -%}
+{%- endif -%}
+{%- endfor -%}
+{%- if experts|length > 0 %}
 * 🙋 **Experts:** {% for expert in experts %}*{{expert.name}}* <{{expert.email}}>{% if not loop.last %}, {% endif %}{% endfor %}
 {%- endif -%}
+{%- endmacro -%}
+{#- ------------------------------------------------------------------------------------ -#}
+{#-  GLOBAL UNIQUE TAGS MACROS                                                           -#}
+{#- ------------------------------------------------------------------------------------ -#}
+{%- macro collectTagsFromQuestion(question, all_tags, seen_tags) -%}
+  {# 1. Collect tags from the current question #}
+  {% for tag in question.tags %}
+    {% if tag.name not in seen_tags %}
+      {% do seen_tags.append(tag.name) %}
+      {% do all_tags.append(tag) %}
+    {% endif %}
+  {% endfor %}
+
+  {# 2. Recursively collect tags from follow-up questions in Options/Answers #}
+  {% if question.answers %}
+    {% for answer in question.answers %}
+      {% if answer.followups %}
+        {% for followup in answer.followups %}
+          {{ collectTagsFromQuestion(followup, all_tags, seen_tags) }}
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {# 3. Recursively collect tags from follow-up questions in List Questions #}
+  {% if question.followups %}
+    {% for followup in question.followups %}
+      {{ collectTagsFromQuestion(followup, all_tags, seen_tags) }}
+    {% endfor %}
+  {% endif %}
+{%- endmacro -%}
+
+{%- macro renderAllUniqueTags(km) -%}
+  {% set all_tags = [] %}
+  {% set seen_tags = [] %}
+
+  {# Traverse all chapters and top-level questions #}
+  {% for chapter in km.chapters %}
+    {% for question in chapter.questions %}
+      {{ collectTagsFromQuestion(question, all_tags, seen_tags) }}
+    {% endfor %}
+  {% endfor %}
+
+  {# Render the unique aggregated tags list #}
+  {% if all_tags|length > 0 %}
+{% for tag in all_tags %}**{{ tag.name }}**{% if not loop.last %}, {% endif %}{% endfor %}
+  {% endif %}
 {%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  ANSWERS MACROS                                                                      -#}
@@ -63,70 +110,68 @@
 ✔️ {{reply.value.value}}
 {%- endmacro -%}
 {%- macro renderAnswerOption(question, reply, path, humanIdentifier) -%}
-{% set hi = question.answers.index(reply.answer) %}
+{%- set hi = question.answers.index(reply.answer) -%}
 {%- set answer = reply.answer -%}
 {%- set path = path ~ "." ~ answer.uuid -%}
-{%- set humanIdentifier = humanIdentifier ~ "." ~ hi|of_alphabet -%}
+{%- set humanIdentifier = humanIdentifier ~ "." ~ hi|of_alphabet %}
 ✔️ {{ hi|of_alphabet }}. {{answer.label}}
 {% if answer.advice %}
 
 💡 {{answer.advice}}
-{% endif %}
-{% if answer.followups|length > 0 %}
-{% set hiPrefix = humanIdentifier ~ "." %}
-{% for subQuestion in answer.followups %}
-{% set x = loop.index %}
-{{ renderQuestion(subQuestion, path, hiPrefix ~ x) }}
-{% endfor %}
-{% endif %}
+{% endif -%}
+{%- if answer.followups|length > 0 -%}
+{%- set hiPrefix = humanIdentifier ~ "." -%}
+{%- for subQuestion in answer.followups %}
+{{ renderQuestion(subQuestion, path, hiPrefix ~ loop.index) }}
+{%- endfor -%}
+{%- endif -%}
 {%- endmacro -%}
 {%- macro renderAnswerList(question, reply, path, humanIdentifier) -%}
-{% set itemPathPrefix = path ~ "." %}
-{% set hiPrefix = humanIdentifier ~ "." %}
-{% if question.followups|length > 0 and question.followups|length < 6 %}
+{%- set itemPathPrefix = path ~ "." -%}
+{%- set hiPrefix = humanIdentifier ~ "." -%}
+{%- if question.followups|length > 0 and question.followups|length < 6 %}
 | # | {% for fq in question.followups %}{{ fq.title }} | {% endfor %}
 
 | --- | {% for fq in question.followups %}--- | {% endfor %}
 
-{% for itemUuid in reply.items %}
-{% set itemPath = itemPathPrefix ~ itemUuid %}
+{% for itemUuid in reply.items -%}
+{%- set itemPath = itemPathPrefix ~ itemUuid -%}
 | {{ loop.index }} | {% for fq in question.followups %}{% set fqPath = itemPath ~ "." ~ fq.uuid %}{% set fqReply = fq.replies.get(fqPath) %}{% if fqReply and fqReply.value %}{% if fq is of_type("ValueQuestion") and fqReply is of_type("StringReply") %}{{ fqReply.markdown_plain | replace("\n", " ") }}{% elif fq is of_type("OptionsQuestion") and fqReply is of_type("AnswerReply") %}{{ fqReply.answer.label }}{% elif fq is of_type("MultiChoiceQuestion") and fqReply is of_type("MultiChoiceReply") %}{%- set chosen = [] -%}{%- for choice in fq.choices -%}{%- if choice in fqReply.choices -%}{%- do chosen.append(choice.label) -%}{%- endif -%}{%- endfor -%}{{ chosen | join(", ") }}{% elif fqReply.is_integration or fqReply.is_legacy_integration %}{{ fqReply.value | replace("\n", " ") }}{% else %}{{ fqReply.value | replace("\n", " ") }}{% endif %}{% else %}—{% endif %} | {% endfor %}
 
 {% else %}
 *No answer items*
-{% endfor %}
-{% else %}
-{% for itemUuid in reply.items %}
-{% set itemPath = itemPathPrefix ~ itemUuid %}
-{% set itemHumanIdentifier = hiPrefix ~ (loop.index - 1)|of_alphabet %}
+{% endfor -%}
+{%- else -%}
+{%- for itemUuid in reply.items -%}
+{%- set itemPath = itemPathPrefix ~ itemUuid -%}
+{%- set itemHumanIdentifier = hiPrefix ~ (loop.index - 1)|of_alphabet %}
 **Item {{ loop.index }}**
-
 {% for subQuestion in question.followups %}
 {{ renderQuestion(subQuestion, itemPath, itemHumanIdentifier ~ "." ~ loop.index) }}
-{% else %}
+{%- else %}
 *No follow up questions*
-{% endfor %}
-{% else %}
+{%- endfor -%}
+{%- else %}
 *No answer items*
-{% endfor %}
-{% endif %}
+{%- endfor -%}
+{%- endif -%}
 {%- endmacro -%}
 {%- macro renderAnswerChoiceList(question, reply, path, humanIdentifier) -%}
 {%- set chosen = [] -%}
 {%- for choice in question.choices -%}
   {%- if choice in reply.choices -%}{%- do chosen.append(choice.label) -%}{%- endif -%}
 {%- endfor -%}
-{% if chosen|length > 0 %}{{ chosen | join(", ") }}{% else %}*No choices selected*{% endif %}
+{%- if chosen|length > 0 %}{{ chosen | join(", ") }}{% else %}*No choices selected*{% endif -%}
 {%- endmacro -%}
 {%- macro renderAnswerItemSelect(question, reply, path, humanIdentifier) -%}
 ✔️ {{ reply.item_title }}
 {%- endmacro -%}
 {%- macro renderAnswerFile(question, reply, path, humanIdentifier) -%}
-{% if reply.file %}
-✔️ [{{ reply.file.name }}]({{ reply.file.download_url }}) ({{ reply.file.size|bytesize_format }})</p>
-{% else %}
+{%- if reply.file %}
+✔️ [{{ reply.file.name }}]({{ reply.file.download_url }}) ({{ reply.file.size|bytesize_format }})
+{%- else %}
 ❌ The file has been deleted
-{% endif %}
+{%- endif -%}
 {%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  QUESTION MACROS                                                                     -#}
@@ -137,79 +182,57 @@
 {{- renderExperts(question) -}}
 {%- endmacro -%}
 {%- macro renderQuestionReply(question, path, humanIdentifier) -%}
-{% set reply = question.replies.get(path) %}
-{% if reply and reply.value %}
-{% if question is of_type("ValueQuestion") and reply is of_type("StringReply") %}
+{%- set reply = question.replies.get(path) -%}
+{%- if reply and reply.value -%}
+{%- if question is of_type("ValueQuestion") and reply is of_type("StringReply") %}
 {{ renderStringValue(question, reply, path, humanIdentifier) }}
-{% elif question is of_type("OptionsQuestion") and reply is of_type("AnswerReply") %}
+{%- elif question is of_type("OptionsQuestion") and reply is of_type("AnswerReply") %}
 {{ renderAnswerOption(question, reply, path, humanIdentifier) }}
-{% elif question is of_type("ListQuestion") and reply is of_type("ItemListReply") %}
+{%- elif question is of_type("ListQuestion") and reply is of_type("ItemListReply") %}
 {{ renderAnswerList(question, reply, path, humanIdentifier) }}
-{% elif question is of_type("IntegrationQuestion") and reply is of_type("IntegrationReply") %}
+{%- elif question is of_type("IntegrationQuestion") and reply is of_type("IntegrationReply") %}
 {{ renderIntegrationValue(question, reply, path, humanIdentifier) }}
-{% elif question is of_type("MultiChoiceQuestion") and reply is of_type("MultiChoiceReply") %}
+{%- elif question is of_type("MultiChoiceQuestion") and reply is of_type("MultiChoiceReply") %}
 {{ renderAnswerChoiceList(question, reply, path, humanIdentifier) }}
-{% elif question is of_type("ItemSelectQuestion") and reply is of_type("ItemSelectReply") %}
+{%- elif question is of_type("ItemSelectQuestion") and reply is of_type("ItemSelectReply") %}
 {{ renderAnswerItemSelect(question, reply, path, humanIdentifier) }}
-{% elif question is of_type("FileQuestion") and reply is of_type("FileReply") %}
+{%- elif question is of_type("FileQuestion") and reply is of_type("FileReply") %}
 {{ renderAnswerFile(question, reply, path, humanIdentifier) }}
-{% endif %}
-{% else %}
+{%- endif -%}
+{%- else %}
 
 ❗ *This question has not been answered yet!*
-{% endif %}
+{%- endif -%}
 {%- endmacro -%}
 {%- macro renderQuestion(question, path, humanIdentifier) -%}
-{% set path = path ~ "." ~ question.uuid %}
+{%- set path = path ~ "." ~ question.uuid %}
 
 #### {{humanIdentifier}} {{question.title}}
-
-{{ renderTags(question) }}
 {{ renderQuestionExtras(question) }}
-{% if question.text %}
+{%- if question.text %}
+
 > {{ question.text.replace("\n", "\n> ") }}
-
 {% endif %}
-{{ renderQuestionReply(question, path, humanIdentifier) }}
-
-{%- endmacro -%}
+{{- renderQuestionReply(question, path, humanIdentifier) }}
+{% endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  CHAPTER MACROS                                                                      -#}
 {#- ------------------------------------------------------------------------------------ -#}
 {%- macro renderReport(report) -%}
-{%- if report.indications|length > 0 %}
-### Summary
-
-{% for item in report.indications -%}
-* Answered{% if item.is_for_phase %} (current phase){% endif %}: **{{item.answered}} / {{item.total}}** ({{"%.2f"|format(item.percentage)}} %)
-{% endfor %}
-{% endif -%}
-{%- if report.metrics|length > 0 %}
-
-### Metrics
-{% for item in report.metrics %}
-* {{item.metric.title}}: {{ "%.2f"|format(item.measure) }}
-{%- endfor %}
-{% endif -%}
 {%- endmacro -%}
-{%- macro renderChapter(chapter, humanIdentifier) -%}
+{%- macro renderChapter(chapter, humanIdentifier) %}
 ## {{humanIdentifier|roman}}. {{chapter.title}}
+{% if chapter.text %}
 
-{%- if chapter.text %}
 > {{chapter.text.replace("\n", "\n> ")}}
-{% endif -%}
-
-{% for chapterReport in chapter.reports %}
-{{ renderReport(chapterReport) }}
-{% endfor %}
+{% endif %}
 
 ### Questions
-
 {% for question in chapter.questions %}
 {{ renderQuestion(question, chapter.uuid, loop.index) }}
 {%- else %}
 *No questions*
-{%- endfor %}
+{%- endfor -%}
 {%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  INTRODUCTION                                                                        -#}
@@ -218,12 +241,13 @@
 
 * Organization: **{{ dc.org.name }}**
 {%- if dc.project.created_by %}
-* Created by: **{{ dc.project.created_by.first_name }} {{ dc.project.created_by.last_name }}** <{{ dc.project.created_by.email }}>
+* Created by: **{{ dc.project.created_by.first_name }} {{ dc.project.created_by.last_name }}**
 {%- endif %}
 * Based on: **{{ dc.pkg.name }}, {{ dc.pkg.version }}** (`{{ dc.pkg.org_id }}:{{ dc.pkg.km_id }}:{{ dc.pkg.version }}`)
 {%- for version in dc.project.versions if version.uuid == dc.project.version %}
 * Version: **{{ version.name }}** ({{ version.created_at|datetime_format("%d %b %Y %H:%M:%S") }} UTC)
 {%- endfor %}
+* Selected tags: {{ renderAllUniqueTags(dc.km) }}
 {%- if dc.current_phase %}
 * Project phase: **{{ dc.current_phase.title }}**
 {%- endif %}
@@ -250,7 +274,6 @@ The named versions of this document:
 {%- endif %}
 
 ---
-
 {% for chapter in dc.km.chapters %}
 {{ renderChapter(chapter, loop.index) }}
 {% else %}

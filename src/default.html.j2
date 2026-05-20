@@ -71,6 +71,59 @@
     </div>
   {% endif %}
 {%- endmacro -%}
+
+{# ------------------------------------------------------------------------------------ #}
+{#  GLOBAL UNIQUE TAGS MACROS                                                           #}
+{# ------------------------------------------------------------------------------------ #}
+{%- macro collectTagsFromQuestion(question, all_tags, seen_tags) -%}
+  {# 1. Collect tags from the current question #}
+  {% for tag in question.tags %}
+    {% if tag.name not in seen_tags %}
+      {% do seen_tags.append(tag.name) %}
+      {% do all_tags.append(tag) %}
+    {% endif %}
+  {% endfor %}
+
+  {# 2. Recursively collect tags from follow-up questions in Options/Answers #}
+  {% if question.answers %}
+    {% for answer in question.answers %}
+      {% if answer.followups %}
+        {% for followup in answer.followups %}
+          {{ collectTagsFromQuestion(followup, all_tags, seen_tags) }}
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {# 3. Recursively collect tags from follow-up questions in List Questions #}
+  {% if question.followups %}
+    {% for followup in question.followups %}
+      {{ collectTagsFromQuestion(followup, all_tags, seen_tags) }}
+    {% endfor %}
+  {% endif %}
+{%- endmacro -%}
+
+{%- macro renderAllUniqueTags(km) -%}
+  {% set all_tags = [] %}
+  {% set seen_tags = [] %}
+
+  {# Traverse all chapters and top-level questions #}
+  {% for chapter in km.chapters %}
+    {% for question in chapter.questions %}
+      {{ collectTagsFromQuestion(question, all_tags, seen_tags) }}
+    {% endfor %}
+  {% endfor %}
+
+  {# Render the unique aggregated tags list #}
+  {% if all_tags|length > 0 %}
+    <div class="tags all-project-tags">
+      {% for tag in all_tags %}
+        <span class="tag" style="background-color:{{tag.color}}">{{tag.name}}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+{%- endmacro -%}
+
 {# ------------------------------------------------------------------------------------ #}
 {#  ANSWERS MACROS                                                                      #}
 {# ------------------------------------------------------------------------------------ #}
@@ -346,9 +399,6 @@
         <h2 class="title">{{humanIdentifier|roman}}. {{chapter.title}}</h2>
         <p class="text-light">{{chapter.text|markdown}}</p>
 
-        {% for chapterReport in chapter.reports %}
-          {{ renderReport(chapterReport) }}
-        {% endfor %}
 
         <section class="questions">
           <h3 class="title">Questions</h3>
@@ -388,6 +438,10 @@
         <td>{{version.name}} ({{ version.created_at|datetime_format("%d %b %Y %H:%M:%S") }} UTC)</td>
       </tr>
       {% endfor %}
+      <tr>
+       <th>Selected tags:</th>
+       <td>{{ renderAllUniqueTags(dc.km) }}</td>
+      </tr>
       {% if dc.current_phase %}
       <tr>
         <th>Project Phase</th>

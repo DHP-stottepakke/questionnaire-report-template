@@ -25,6 +25,10 @@ This lean version is following the main release cycle.
 
 ## Changelog
 
+### 2.17.1
+
+- Tables for lists with less then 6 items, reduced whitespace
+
 ### 2.17.0
 
 - Adjusted to template metamodel version 18.0 (released in DSW 4.29.0)
