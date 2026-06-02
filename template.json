@@ -1,7 +1,7 @@
 {
   "templateId": "questionnaire-report-lean",
   "organizationId": "research.data.no",
-  "version": "2.17.1",
+  "version": "2.17.2",
   "name": "Questionnaire Report - lean",
   "description": "Exported questions and answers from a questionnaire",
   "license": "Apache-2.0",
