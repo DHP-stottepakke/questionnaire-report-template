@@ -25,7 +25,7 @@
 {% endif %}
 {% endfor %}
 {% if refs|length > 0 %}
-* 📖 **{% trans %}Resource Pages:{% endtrans %}** {% for ref in refs %}{%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.pkg.id ~ '/resource-pages/' ~ ref.uuid -%}[{{ ref.collection_title }} - {{ ref.title }}]({{resourcePageLink}}){% if not loop.last %}, {% endif %}{% endfor %}
+* 📖 **{% trans %}Resource Pages:{% endtrans %}** {% for ref in refs %}{%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.km_package.id ~ ':' ~ dc.km_package.version ~ '/resource-pages/' ~ ref.uuid -%}[{{ ref.collection_title }} - {{ ref.title }}]({{resourcePageLink}}){% if not loop.last %}, {% endif %}{% endfor %}
 {% endif %}
 {%- endmacro -%}
 {%- macro renderURLReferences(question) -%}
@@ -202,16 +202,15 @@
 {#- ------------------------------------------------------------------------------------ -#}
 # {{ dc.project.name }}
 
-* {% trans name=dc.org.name %}Organization: **{{ name }}**{% endtrans %}
-{%- if dc.project.created_by %}
+{% if dc.project.created_by -%}
 * {% trans first_name=dc.project.created_by.first_name, last_name=dc.project.created_by.last_name, email=dc.project.created_by.email %}Created by: **{{ first_name }} {{ last_name }}** <{{ email }}>{% endtrans %}
-{%- endif %}
-* {% trans name=dc.pkg.name, version=dc.pkg.version, org_id=dc.pkg.org_id, km_id=dc.pkg.km_id %}Based on: **{{ name }}, {{ version }}** (`{{ org_id }}:{{ km_id }}:{{ version }}`){% endtrans %}
-{%- for version in dc.project.versions if version.uuid == dc.project.version %}
+{% endif -%}
+* {% trans name=dc.km_package.name, version=dc.km_package.version, id=dc.km_package.id %}Based on: **{{ name }}, {{ version }}** (`{{ id }}:{{ version }}`){% endtrans %}
+{%- for version in dc.questionnaire.versions if version.uuid == dc.questionnaire.version %}
 * {% trans name=version.name, date=formatDateTime(version.created_at) %}Version: **{{ name }}** ({{ date }} UTC){% endtrans %}
 {%- endfor %}
-{%- if dc.current_phase %}
-* {% trans title=dc.current_phase.title %}Project phase: **{{ title }}**{% endtrans %}
+{%- if dc.questionnaire.phase %}
+* {% trans title=dc.questionnaire.phase.title %}Project phase: **{{ title }}**{% endtrans %}
 {%- endif %}
 {%- if dc.project.project_tags|length > 0 %}
 * {% trans %}Project tags:{% endtrans %} {% for tag in dc.project.project_tags %}**{{ tag }}**{% if not loop.last %}, {% endif %}{% endfor %}
@@ -219,18 +218,18 @@
 {%- if dc.project.description %}
 * {% trans description=dc.project.description %}Description: **{{ description }}**{% endtrans %}
 {%- endif %}
-* {% trans date=formatDate(dc.doc.created_at) %}Created at: **{{ date }}**{% endtrans %}
+* {% trans date=formatDate(dc.document.created_at) %}Created at: **{{ date }}**{% endtrans %}
 
 ## {% trans %}Report{% endtrans %}
 
-{{ renderReport(dc.report.total_report) }}
+{{ renderReport(dc.questionnaire.report.total_report) }}
 
-{% if dc.project.versions|length > 0 %}
+{% if dc.questionnaire.versions|length > 0 %}
 ## {% trans %}History of Versions{% endtrans %}
 
 {% trans %}The named versions of this document:{% endtrans %}
 
-{%- for version in dc.project.versions|reverse %}
+{%- for version in dc.questionnaire.versions|reverse %}
 * **{{ version.name }}** ({{ formatDate(version.created_at) }}): {{ version.description }}
 {%- endfor %}
 {%- endif %}

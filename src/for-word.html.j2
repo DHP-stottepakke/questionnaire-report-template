@@ -28,7 +28,7 @@
   {% endfor %}
   {% if refs|length > 0 %}
     <div data-custom-style="Question Meta">
-      <b>{% trans %}Resource Pages:{% endtrans %}</b> {% for ref in refs %}{%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.pkg.id ~ '/resource-pages/' ~ ref.uuid -%}<a id="{{ref.ref_uuid}}" class="reference resourcepage-link" href="{{ resourcePageLink }}"><i>{{ ref.collection_title }} - {{ ref.title }}</i></a>{% if not loop.last %}, {% endif %}{% endfor %}
+      <b>{% trans %}Resource Pages:{% endtrans %}</b> {% for ref in refs %}{%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.km_package.id ~ ':' ~ dc.km_package.version ~ '/resource-pages/' ~ ref.uuid -%}<a id="{{ref.ref_uuid}}" class="reference resourcepage-link" href="{{ resourcePageLink }}"><i>{{ ref.collection_title }} - {{ ref.title }}</i></a>{% if not loop.last %}, {% endif %}{% endfor %}
     </div>
   {% endif %}
 {%- endmacro -%}
@@ -279,10 +279,6 @@
 {# ------------------------------------------------------------------------------------ #}
 {%- macro renderFrontPage() -%}
   <table>
-    <tr>
-      <th>{% trans %}Organization{% endtrans %}</th>
-      <td>{{dc.org.name}}</td>
-    </tr>
     {% if dc.project.created_by %}
     <tr>
       <th>{% trans %}Created by{% endtrans %}</th>
@@ -291,18 +287,18 @@
     {% endif %}
     <tr>
       <th>{% trans %}Based on{% endtrans %}</th>
-      <td>{{dc.pkg.name}}, {{dc.pkg.version}} (<code>{{dc.pkg.org_id}}:{{dc.pkg.km_id}}:{{dc.pkg.version}}</code>)</td>
+      <td>{{dc.km_package.name}}, {{dc.km_package.version}} (<code>{{dc.km_package.id}}:{{dc.km_package.version}}</code>)</td>
     </tr>
-    {% for version in dc.project.versions if version.uuid == dc.project.version %}
+    {% for version in dc.questionnaire.versions if version.uuid == dc.questionnaire.version %}
     <tr>
       <th>{% trans %}Version{% endtrans %}</th>
       <td>{% trans name=version.name, date=formatDateTime(version.created_at) %}{{ name }} ({{ date }} UTC){% endtrans %}</td>
     </tr>
     {% endfor %}
-    {% if dc.current_phase %}
+    {% if dc.questionnaire.phase %}
     <tr>
       <th>{% trans %}Project Phase{% endtrans %}</th>
-      <td>{{dc.current_phase.title}}</td>
+      <td>{{dc.questionnaire.phase.title}}</td>
     </tr>
     {% endif %}
     {% if dc.project.project_tags|length > 0 %}
@@ -319,7 +315,7 @@
     {% endif %}
     <tr>
       <th>{% trans %}Created at{% endtrans %}</th>
-      <td>{{ formatDate(dc.doc.created_at) }}</td>
+      <td>{{ formatDate(dc.document.created_at) }}</td>
     </tr>
   </table>
 
@@ -342,7 +338,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for version in dc.project.versions|reverse %}
+        {% for version in dc.questionnaire.versions|reverse %}
           <tr>
             <td><strong>{{ version.name }}</strong></td>
             <td>{{ formatDate(version.created_at) }}</td>
@@ -356,9 +352,9 @@
 {%- macro renderContent() -%}
   <div>
     <div>
-      {{ renderReport(dc.report.total_report, top=true) }}
+      {{ renderReport(dc.questionnaire.report.total_report, top=true) }}
     </div>
-    {% if dc.project.versions|length > 0 %}
+    {% if dc.questionnaire.versions|length > 0 %}
       {{ renderVersionsOverview() }}
     {% endif %}
     {% for chapter in dc.km.chapters %}
@@ -373,7 +369,7 @@
 {# ------------------------------------------------------------------------------------ #}
 {#  HTML TEMPLATE                                                                       #}
 {# ------------------------------------------------------------------------------------ #}
-<html lang="{{ dc.doc.locale.code if dc.doc.locale else "en" }}">
+<html lang="{{ dc.document.locale.code if dc.document.locale else "en" }}">
   <head>
     <title>{{dc.project.name}}</title>
     <meta charset="utf-8">

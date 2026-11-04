@@ -24,7 +24,7 @@
       <svg aria-hidden="true" data-prefix="fas" data-icon="book" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-inline--fa fa-book fa-w-14 fa-2x"><path fill="currentColor" d="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z" class=""></path></svg>
       <span><b>{% trans %}Resource Pages:{% endtrans %}</b></span>
       {% for ref in refs %}
-        {%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.pkg.id ~ '/resource-pages/' ~ ref.uuid -%}
+        {%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.km_package.id ~ ':' ~ dc.km_package.version ~ '/resource-pages/' ~ ref.uuid -%}
         <a id="{{ref.ref_uuid}}" class="reference resourcepage-link" href="{{ resourcePageLink }}"><i>{{ ref.collection_title }} - {{ ref.title }}</i></a>
       {% endfor %}
     </div>
@@ -325,10 +325,6 @@
     <h1>{{dc.project.name}}</h1>
 
     <table class="dmp-data">
-      <tr>
-        <th>{% trans %}Organization{% endtrans %}</th>
-        <td>{{dc.org.name}}</td>
-      </tr>
       {% if dc.project.created_by %}
       <tr>
         <th>{% trans %}Created by{% endtrans %}</th>
@@ -337,18 +333,18 @@
       {% endif %}
       <tr>
         <th>{% trans %}Based on{% endtrans %}</th>
-        <td>{{dc.pkg.name}}, {{dc.pkg.version}} (<span class="package-id"><span class="organization-id">{{dc.pkg.org_id}}</span>:<span class="km-id">{{dc.pkg.km_id}}</span>:<span class="version">{{dc.pkg.version}}</span></span>)</td>
+        <td>{{dc.km_package.name}}, {{dc.km_package.version}} (<span class="package-id">{{dc.km_package.id}}:{{dc.km_package.version}}</span>)</td>
       </tr>
-      {% for version in dc.project.versions if version.uuid == dc.project.version %}
+      {% for version in dc.questionnaire.versions if version.uuid == dc.questionnaire.version %}
       <tr>
         <th>{% trans %}Version{% endtrans %}</th>
         <td>{% trans name=version.name, date=formatDateTime(version.created_at) %}{{ name }} ({{ date }} UTC){% endtrans %}</td>
       </tr>
       {% endfor %}
-      {% if dc.current_phase %}
+      {% if dc.questionnaire.phase %}
       <tr>
         <th>{% trans %}Project Phase{% endtrans %}</th>
-        <td>{{dc.current_phase.title}}</td>
+        <td>{{dc.questionnaire.phase.title}}</td>
       </tr>
       {% endif %}
       {% if dc.project.project_tags|length > 0 %}
@@ -365,7 +361,7 @@
       {% endif %}
       <tr>
         <th>{% trans %}Created at{% endtrans %}</th>
-        <td>{{ formatDate(dc.doc.created_at) }}</td>
+        <td>{{ formatDate(dc.document.created_at) }}</td>
       </tr>
     </table>
     <p class="tool-info">
@@ -393,7 +389,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for version in dc.project.versions|reverse %}
+        {% for version in dc.questionnaire.versions|reverse %}
           <tr>
             <td class="version-name">{{ version.name }}</td>
             <td class="version-date">{{ formatDate(version.created_at) }}</td>
@@ -412,9 +408,9 @@
   <main>
     <section class="total-report">
       <h2>{% trans %}Summary Report{% endtrans %}</h2>
-      {{ renderReport(dc.report.total_report) }}
+      {{ renderReport(dc.questionnaire.report.total_report) }}
 
-      {% if dc.project.versions|length > 0 %}
+      {% if dc.questionnaire.versions|length > 0 %}
       <h2>{% trans %}History of Versions{% endtrans %}</h2>
       {{ renderVersionsOverview() }}
       {% endif %}
@@ -429,7 +425,7 @@
 {# ------------------------------------------------------------------------------------ #}
 {#  HTML TEMPLATE                                                                       #}
 {# ------------------------------------------------------------------------------------ #}
-<html lang="{{ dc.doc.locale.code if dc.doc.locale else "en" }}">
+<html lang="{{ dc.document.locale.code if dc.document.locale else "en" }}">
   <head>
     <title>{% trans service_name_short=dc.config.service_name_short, name=dc.project.name %}{{ service_name_short }} Questionnaire Report: {{ name }}{% endtrans %}</title>
     <meta charset="utf-8">
