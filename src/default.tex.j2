@@ -168,7 +168,7 @@
   {%- if resourcePageReferences|length > 0 %}
   \item \textbf{ {%- trans %}Resource Pages{% endtrans %}}: {% for reference in resourcePageReferences -%}
   {%- if reference.resource_page_uuid and reference.resource_page and reference.resource_page.collection -%}
-    {%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.pkg.id ~ '/resource-pages/' ~ reference.resource_page.uuid -%}
+    {%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.km_package.id ~ ':' ~ dc.km_package.version ~ '/resource-pages/' ~ reference.resource_page.uuid -%}
     \href{ {{- url(resourcePageLink) -}} }{ {{- tex(reference.resource_page.collection.title) }} -- {{ tex(reference.resource_page.title) -}} }
     {%- if not loop.last -%}, {% endif -%}{%- endif -%}{%- endfor -%}
   {%- endif -%}
@@ -240,7 +240,7 @@
 \end{reportbox}
 {%- endmacro -%}
 {%- macro renderVersions() -%}
-{% if dc.project.versions|length > 0 %}
+{% if dc.questionnaire.versions|length > 0 %}
 \section*{ {%- trans %}History of Versions{% endtrans %}}
 
 \noindent
@@ -248,7 +248,7 @@
   \toprule
   \metalabel{ {%- trans %}Version{% endtrans %}} & \metalabel{ {%- trans %}Date{% endtrans %}} & \metalabel{ {%- trans %}Description{% endtrans %}} \\
   \midrule
-{%- for version in dc.project.versions|reverse %}
+{%- for version in dc.questionnaire.versions|reverse %}
   \textbf{ {{- tex(version.name) -}} } & \textcolor{qrMuted}{ {{- formatDate(version.created_at) -}} } & {{ tex(version.description) }} \\
 {%- endfor %}
   \bottomrule
@@ -417,16 +417,15 @@
   \vspace{14mm}
   \renewcommand{\arraystretch}{1.6}%
   \noindent\begin{tabularx}{\linewidth}{@{}l@{\hspace{8mm}}X@{}}
-    \metalabel{ {%- trans %}Organization{% endtrans %}} & {{ tex(dc.org.name) }} \\ \hline
 {%- if dc.project.created_by %}
     \metalabel{ {%- trans %}Created by{% endtrans %}} & {{ tex(dc.project.created_by.first_name) }} {{ tex(dc.project.created_by.last_name) }} (\href{mailto:{{ url(dc.project.created_by.email) }}}{ {{- tex(dc.project.created_by.email) -}} }) \\ \hline
 {%- endif %}
-    \metalabel{ {%- trans %}Based on{% endtrans %}} & {{ tex(dc.pkg.name) }}, {{ tex(dc.pkg.version) }} \textcolor{qrLight}{(\texttt{\small {{ tex(dc.pkg.org_id) }}:{{ tex(dc.pkg.km_id) }}:{{ tex(dc.pkg.version) }}})} \\ \hline
-{%- for version in dc.project.versions if version.uuid == dc.project.version %}
+    \metalabel{ {%- trans %}Based on{% endtrans %}} & {{ tex(dc.km_package.name) }}, {{ tex(dc.km_package.version) }} \textcolor{qrLight}{(\texttt{\small {{ tex(dc.km_package.id) }}:{{ tex(dc.km_package.version) }}})} \\ \hline
+{%- for version in dc.questionnaire.versions if version.uuid == dc.questionnaire.version %}
     \metalabel{ {%- trans %}Version{% endtrans %}} & {% trans name=tex(version.name), date=formatDateTime(version.created_at) %}{{ name }} ({{ date }} UTC){% endtrans %} \\ \hline
 {%- endfor %}
-{%- if dc.current_phase %}
-    \metalabel{ {%- trans %}Project Phase{% endtrans %}} & {{ tex(dc.current_phase.title) }} \\ \hline
+{%- if dc.questionnaire.phase %}
+    \metalabel{ {%- trans %}Project Phase{% endtrans %}} & {{ tex(dc.questionnaire.phase.title) }} \\ \hline
 {%- endif %}
 {%- if dc.project.project_tags|length > 0 %}
     \metalabel{ {%- trans %}Project Tags{% endtrans %}} & {% for tag in dc.project.project_tags %}\qtag{qrAccent}{ {{- tex(tag) -}} }{% if not loop.last %} {% endif %}{% endfor %} \\ \hline
@@ -434,7 +433,7 @@
 {%- if dc.project.description %}
     \metalabel{ {%- trans %}Description{% endtrans %}} & {{ tex(dc.project.description) }} \\ \hline
 {%- endif %}
-    \metalabel{ {%- trans %}Created at{% endtrans %}} & {{ formatDate(dc.doc.created_at) }} \\ \hline
+    \metalabel{ {%- trans %}Created at{% endtrans %}} & {{ formatDate(dc.document.created_at) }} \\ \hline
   \end{tabularx}
 
   \vfill
@@ -451,7 +450,7 @@
 \markboth{ {%- trans %}Report Summary{% endtrans %}}{}
 \addcontentsline{toc}{chapter}{ {%- trans %}Report Summary{% endtrans %}}
 
-{{ renderReport(dc.report.total_report) }}
+{{ renderReport(dc.questionnaire.report.total_report) }}
 
 {{ renderVersions() }}
 

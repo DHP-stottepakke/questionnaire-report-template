@@ -11,7 +11,7 @@ This template is available through [DSW Registry](https://registry.ds-wizard.org
 ## Translations
 
 All texts of the template are marked for translation (source language: English), including month
-names in dates (and the `babel` language of the LaTeX format). The Wizard (4.35.0 or newer)
+names in dates (and the `babel` language of the LaTeX format). The Wizard
 generates the POT file when the template is released; upload translated PO files as document
 template locales to get documents in other languages. Content of the knowledge model and the
 answers are not translated.
@@ -36,6 +36,13 @@ This document template for DSW is available as open-source via GitHub Repository
 
 
 ## Changelog
+
+### 3.0.0
+
+- Adjusted to template metamodel version 19.0 (released in Wizard 5.0); use 2.19.0 with Wizard 4.x
+- The template ID is now `dsw.questionnaire-report`
+- The cover no longer shows the organization (not part of the document context of Wizard 5.0)
+- Knowledge model IDs in the new form `<org>.<km>:<version>` (also in links to resource pages)
 
 ### 2.19.0
 
