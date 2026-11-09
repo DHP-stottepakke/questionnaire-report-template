@@ -2,7 +2,18 @@
 
 This a fork of generic default template for [Data Stewardship Wizard (DSW)](https://ds-wizard.org/) directly transforms answers from a questionnaire into a document while maintaining the structure. It is not tied to any knowledge model. This is a version for an reduced output for leaner documents.
 
-This lean version is following the main release cycle.
+This lean version is following the main release cycle. It is based on the upstream template [ds-wizard/questionnaire-report-template](https://github.com/ds-wizard/questionnaire-report-template) and leaves out question texts, per-question tags, chapter summaries, unselected choices, the separate cover page (HTML/PDF) and the table of contents (LaTeX); list questions with fewer than six sub-questions are rendered as tables.
+
+Version 3.x requires Data Stewardship Wizard 5.0 or newer (template metamodel 19.0); use 2.17.x with DSW 4.x.
+
+
+## Translations
+
+All texts of the template are marked for translation (source language: English), including month
+names in dates (and the `babel` language of the LaTeX format). The Wizard generates the POT file
+when the template is released; upload translated PO files as document template locales to get
+documents in other languages. Content of the knowledge model and the answers are not translated.
+
 
 ### Original Contributors
 
@@ -25,9 +36,33 @@ This lean version is following the main release cycle.
 
 ## Changelog
 
+### 3.0.0
+
+- Adjusted to template metamodel version 19.0 (released in DSW 5.0); use 2.17.x with DSW 4.x
+- The template ID is now `research.data.no.questionnaire-report-lean`
+- Based on upstream 3.0.0: redesigned HTML/PDF, MS Word (A4 reference document) and LaTeX formats,
+  translatable texts, LaTeX output that compiles with special characters (`&`, `#`, `%`, `_` ...)
+- Lean: no separate cover page (HTML/PDF), no table of contents (LaTeX), summary and history of
+  versions follow the front page data
+- "Selected tags" shows the question tags selected in the project (hidden if none are selected)
+- Removed the organization from the front page (not part of the document context of DSW 5.0)
+- Fixed project phase shown as "never" for projects without a phase and the missing current version
+- Fixed empty integration answers in Markdown
+- Fixed missing follow-up answers in list tables: answered follow-ups are shown inside the table
+  cells; the limit of fewer than six columns counts the sub-questions and all their nested
+  follow-ups, larger lists are shown as items
+- Fixed LaTeX format that failed to render (since 2.17.1)
+
+### 2.17.2
+
+- Selected tags for whole questionnaire in intro
+- Changed provenance 
+
+
 ### 2.17.1
 
 - Tables for lists with less then 6 items, reduced whitespace
+- Selected project tags moved to frontpage
 
 ### 2.17.0
 

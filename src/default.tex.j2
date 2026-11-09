@@ -2,81 +2,58 @@
 {#-  VARIABLES                                                                           -#}
 {#- ------------------------------------------------------------------------------------ -#}
 {%- set dc = ctx|to_context_obj -%}
+{%- from "src/dates.j2" import formatDate, formatDateTime -%}
+{#- LaTeX output: no HTML escaping, values from the context are escaped by tex() instead -#}
+{%- autoescape false -%}
 {#- ------------------------------------------------------------------------------------ -#}
-{#-  GLOBAL UNIQUE TAGS MACROS                                                           -#}
+{#-  LATEX ESCAPING                                                                      -#}
 {#- ------------------------------------------------------------------------------------ -#}
-{%- macro collectTagsFromQuestion(question, all_tags, seen_tags) -%}
-  {# 1. Collect tags from the current question #}
-  {% for tag in question.tags %}
-    {% if tag.name not in seen_tags %}
-      {% do seen_tags.append(tag.name) %}
-      {% do all_tags.append(tag) %}
-    {% endif %}
-  {% endfor %}
-
-  {# 2. Recursively collect tags from follow-up questions in Options/Answers #}
-  {% if question.answers %}
-    {% for answer in question.answers %}
-      {% if answer.followups %}
-        {% for followup in answer.followups %}
-          {{ collectTagsFromQuestion(followup, all_tags, seen_tags) }}
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
-  {% endif %}
-
-  {# 3. Recursively collect tags from follow-up questions in List Questions #}
-  {% if question.followups %}
-    {% for followup in question.followups %}
-      {{ collectTagsFromQuestion(followup, all_tags, seen_tags) }}
-    {% endfor %}
-  {% endif %}
+{%- macro tex(value) -%}
+{{- (value if value is not none else "")|string
+    |replace("\\", "@@QR-BACKSLASH@@")
+    |replace("{", "\\{")
+    |replace("}", "\\}")
+    |replace("@@QR-BACKSLASH@@", "\\textbackslash{}")
+    |replace("&", "\\&")
+    |replace("%", "\\%")
+    |replace("$", "\\$")
+    |replace("#", "\\#")
+    |replace("_", "\\_")
+    |replace("~", "\\textasciitilde{}")
+    |replace("^", "\\textasciicircum{}")
+    |replace("\u2028", " ")
+    |replace("\u2029", " ") -}}
 {%- endmacro -%}
-
-{%- macro renderAllUniqueTags(km) -%}
-  {% set all_tags = [] %}
-  {% set seen_tags = [] %}
-
-  {# Traverse all chapters and top-level questions #}
-  {% for chapter in km.chapters %}
-    {% for question in chapter.questions %}
-      {{ collectTagsFromQuestion(question, all_tags, seen_tags) }}
-    {% endfor %}
-  {% endfor %}
-
-  {# Render the unique aggregated tags list #}
-  {% if all_tags|length > 0 %}
-{% for tag in all_tags %}{%- set color = tag.color[1:] if tag.color[0] == "#" else tag.color -%}\setulcolor{{ "{" }}{{color}}{{ "}" }}\ul{{ "{" }}{{tag.name}}{{ "}" }}{% if not loop.last %}, {% endif %}{% endfor %}
-  {% endif %}
+{%- macro url(value) -%}
+{{- (value if value is not none else "")|string
+    |replace("\\", "/")
+    |replace("%", "\\%")
+    |replace("#", "\\#")
+    |replace("{", "%7B")
+    |replace("}", "%7D") -}}
 {%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  ANSWERS MACROS                                                                      -#}
 {#- ------------------------------------------------------------------------------------ -#}
 {%- macro renderAnswerValue(question, reply, path, humanIdentifier) %}
 {%- if reply is of_type("StringReply") %}
-  {%- if question.value_type == "UrlQuestionValueType" %}
-    \begin{itemize}
-      \item[\CheckmarkBold] \url{ {{ reply.value }} }
-    \end{itemize}
-  {%- else %}
-    \begin{itemize}
-      \item[\CheckmarkBold]
-      \begin{markdown}
-      {{ reply.markdown_plain | regex_replace('!\[[^\]]*\]\([^\)]*\)', '') | trim }}
-      \end{markdown}
-    \end{itemize}
-  {%- endif %}
+\begin{answerbox}
+{%- if question.value_type == "UrlQuestionValueType" %}
+\url{ {{- url(reply.value) -}} }
+{%- else %}
+{{ tex(reply.markdown_plain) }}
+{%- endif %}
+\end{answerbox}
 {% else %}
-\begin{itemize}
-  \item[\CheckmarkBold] 
-  \begin{markdown}
-  {{ reply.value.split("![]", 1)[0] }}
-  \end{markdown}
-  {% if reply.is_legacy_integration -%}
-  {%- set integration = question.integration %}
-  \href{{ "{" }}{{ integration.item(reply.item_id) }}{{ "}" }}{{ "{" }}({{ integration.name }}: {{ reply.item_id }}){{ "}" }}
-  {% endif %}
-\end{itemize}
+\begin{answerbox}
+\begin{markdown}
+{{ reply.value.split("![]", 1)[0] }}
+\end{markdown}
+{%- if reply.is_legacy_integration %}
+{%- set integration = question.integration %}
+\href{ {{- url(integration.item(reply.item_id)) -}} }{({{ tex(integration.name) }}: {{ tex(reply.item_id) }})}
+{%- endif %}
+\end{answerbox}
 {% endif -%}
 {%- endmacro -%}
 {%- macro renderAnswerOption(question, reply, path, humanIdentifier) -%}
@@ -84,77 +61,129 @@
 {%- set answer = reply.answer -%}
 {%- set path = path ~ "." ~ answer.uuid -%}
 {%- set humanIdentifier = humanIdentifier ~ "." ~ hi|of_alphabet %}
-\begin{itemize}
-  \item[\CheckmarkBold] {{ hi|of_alphabet }}. {{ answer.label }}
-\end{itemize}
+\begin{answerbox}
+{{ hi|of_alphabet }}. {{ tex(answer.label) }}
+\end{answerbox}
 
 {% if answer.advice -%}
-\noindent
+\begin{advicebox}
 \begin{markdown}
 {{answer.advice}}
 \end{markdown}
+\end{advicebox}
 {%- endif %}
 
 {% if answer.followups|length > 0 -%}
 {%- set hiPrefix = humanIdentifier ~ "." -%}
 {%- for question in answer.followups -%}
 {%- set x = loop.index -%}
-{{ renderQuestion(question, path, hiPrefix ~ x, False) }}
+{{ renderQuestion(question, path, hiPrefix ~ x) }}
 {%- endfor -%}
 {%- endif -%}
 {%- endmacro -%}
+{%- macro cell(value) -%}
+{#- lean: tex() for table cells, long words (e-mails, URLs, identifiers) may break after @ . / #}
+{{- tex(value)|replace("@", "@\\allowbreak{}")|replace(".", ".\\allowbreak{}")|replace("/", "/\\allowbreak{}") -}}
+{%- endmacro -%}
+{%- macro collectFollowups(question, acc) -%}
+{#- lean: all follow-up questions below a sub-question (answers of options, items of lists), recursively #}
+{%- if question is of_type("OptionsQuestion") -%}
+{%- for answer in question.answers -%}{%- for fu in answer.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}{%- endfor -%}
+{%- elif question is of_type("ListQuestion") -%}
+{%- for fu in question.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}
+{%- endif -%}
+{%- endmacro -%}
+{%- macro renderCellFollowups(questions, basePath, mode) -%}
+{#- lean: answered follow-ups inside a table cell; mode: lines (top level), inline (deeper), item (fields of a list item) #}
+{%- for q in questions if q.replies.get(basePath ~ "." ~ q.uuid) and q.replies.get(basePath ~ "." ~ q.uuid).value -%}
+{%- if mode == "lines" %}\newline {% elif mode == "inline" %} -- {% elif not loop.first %}; {% else %} {% endif -%}
+\textit{ {{- cell(q.title) -}} {{- "" if q.title[-1:] in "?:" else ":" -}} } {{ renderAnswerCell(q, basePath ~ "." ~ q.uuid, false) }}
+{%- endfor -%}
+{%- endmacro -%}
+{%- macro renderAnswerCell(fq, fqPath, top=true) -%}
+{%- set fqReply = fq.replies.get(fqPath) -%}
+{%- if fqReply and fqReply.value -%}
+{%- if fq is of_type("ValueQuestion") and fqReply is of_type("StringReply") -%}
+{{ cell(fqReply.markdown_plain) }}
+{%- elif fqReply.is_integration or fqReply.is_legacy_integration -%}
+{{ cell(fqReply.item_title) }}
+{%- elif fq is of_type("OptionsQuestion") and fqReply is of_type("AnswerReply") -%}
+{{ cell(fqReply.answer.label) }}
+{{- renderCellFollowups(fqReply.answer.followups, fqPath ~ "." ~ fqReply.answer.uuid, "lines" if top else "inline") -}}
+{%- elif fq is of_type("MultiChoiceQuestion") and fqReply is of_type("MultiChoiceReply") -%}
+{{ cell(fq.choices|select("in", fqReply.choices)|map(attribute="label")|join(", ")) }}
+{%- elif fq is of_type("ItemSelectQuestion") and fqReply is of_type("ItemSelectReply") -%}
+{{ cell(fqReply.item_title) }}
+{%- elif fq is of_type("FileQuestion") and fqReply is of_type("FileReply") and fqReply.file -%}
+\href{ {{- url(fqReply.file.download_url) -}} }{ {{- tex(fqReply.file.name) -}} }
+{%- elif fq is of_type("ListQuestion") and fqReply is of_type("ItemListReply") -%}
+{%- for itemUuid in fqReply.items -%}
+{%- if not loop.first %}{% if top %}\newline {% else %} {% endif %}{% endif -%}
+({{ loop.index }}){{ renderCellFollowups(fq.followups, fqPath ~ "." ~ itemUuid, "item") }}
+{%- endfor -%}
+{%- else -%}
+{{ cell(fqReply.value) }}
+{%- endif -%}
+{%- else -%}
+\textcolor{qrLight}{--}
+{%- endif -%}
+{%- endmacro -%}
 {%- macro renderAnswerList(question, reply, path, humanIdentifier) -%}
-{% set itemPathPrefix = path ~ "." %}
-{% set hiPrefix = humanIdentifier ~ "." %}
-{% if question.followups|length > 0 and question.followups|length < 6 %}
-\begin{table}[h]
-\begin{tabular}{| l |{% for fq in question.followups %} p{{ "{" }}{%- if question.followups|length == 1 %}0.8{%- elif question.followups|length == 2 %}0.38{%- elif question.followups|length == 3 %}0.24{%- elif question.followups|length == 4 %}0.17{%- else %}0.13{%- endif %}\textwidth} |{% endfor %}}
-\hline
-\textbf{\#} & {% for fq in question.followups %}\textbf{ {{- fq.title | replace("_","\_") | replace("&","\&") | replace("%","\%") | replace("#","\#") -}} }{% if not loop.last %} & {% endif %}{% endfor %} \\
-\hline
-{% for itemUuid in reply.items %}
-{% set itemPath = itemPathPrefix ~ itemUuid %}
-{{ loop.index }} & {% for fq in question.followups %}{% set fqPath = itemPath ~ "." ~ fq.uuid %}{% set fqReply = fq.replies.get(fqPath) %}{% if fqReply and fqReply.value %}{% if fq is of_type("ValueQuestion") and fqReply is of_type("StringReply") %}{{ fqReply.markdown_plain | replace("_","\_") | replace("&","\&") | replace("%","\%") | replace("#","\#") | replace("\n"," ") }}{% elif fq is of_type("OptionsQuestion") and fqReply is of_type("AnswerReply") %}{{ fqReply.answer.label | replace("_","\_") | replace("&","\&") }}{% elif fq is of_type("MultiChoiceQuestion") and fqReply is of_type("MultiChoiceReply") %}{%- set chosen = [] -%}{%- for choice in fq.choices -%}{%- if choice in fqReply.choices -%}{%- do chosen.append(choice.label) -%}{%- endif -%}{%- endfor -%}{{ chosen | join(", ") | replace("_","\_") | replace("&","\&") }}{% else %}{{ fqReply.value | replace("_","\_") | replace("&","\&") | replace("%","\%") | replace("\n"," ") }}{% endif %}{% else %}---{% endif %}{% if not loop.last %} & {% endif %}{% endfor %} \\
-\hline
+{%- set itemPathPrefix = path ~ "." -%}
+{%- set hiPrefix = humanIdentifier ~ "." %}
+\sectionlabel{ {%- trans count=reply.items|length %}Answered with {{ count }} item as follows.{% pluralize %}Answered with {{ count }} items as follows.{% endtrans %}}
+{#- lean: table only if sub-questions plus their nested follow-ups are fewer than 6; nested answers go into the cells #}
+{%- set nested = [] %}{% for fq in question.followups %}{{ collectFollowups(fq, nested) }}{% endfor %}
+{%- if question.followups|length > 0 and question.followups|length + nested|length < 6 %}
+{#- lean: table view (items as rows, sub-questions as columns) for fewer than 6 sub-questions #}
+{%- set n = question.followups|length %}
+{\footnotesize
+\begin{longtable}{@{}r*{ {{- n -}} }{>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-2em)/{{ n }}-2\tabcolsep\relax}}@{}}
+  \toprule
+  \textcolor{qrMuted}{\#}{% for fq in question.followups %} & \textcolor{qrMuted}{\bfseries {{ tex(fq.title) }}}{% endfor %} \\
+  \midrule
+  \endhead
+{%- for i in reply.items %}
+{%- set itemPath = itemPathPrefix ~ i %}
+  \textcolor{qrMuted}{ {{- loop.index -}} }{% for fq in question.followups %} & {{ renderAnswerCell(fq, itemPath ~ "." ~ fq.uuid)|replace("\n", " ") }}{% endfor %} \\{% if not loop.last %} \midrule[0.2pt]{% endif %}
+{%- endfor %}
+  \bottomrule
+\end{longtable}
+}
+{%- else %}
+{%- for i in reply.items -%}
+{%- set itemPath = itemPathPrefix ~ i -%}
+{%- set itemHumanIdentifier = hiPrefix ~ (loop.index - 1)|of_alphabet %}
+% Answer item: {{itemPath}}
+\answeritem{ {{- itemHumanIdentifier -}} }
+{%- for question in question.followups -%}
+  {%- set x = loop.index -%}
+{{ renderQuestion(question, itemPath, itemHumanIdentifier ~ "." ~ x) }}
 {% else %}
-\textit{No answer items}
+\noanswer{ {%- trans %}No follow up questions{% endtrans %}}
 {% endfor %}
-\end{tabular}
-\end{table}
-{% else %}
-{% for itemUuid in reply.items %}
-{% set itemPath = itemPathPrefix ~ itemUuid %}
-{% set itemHumanIdentifier = hiPrefix ~ (loop.index - 1)|of_alphabet %}
-{% for subQuestion in question.followups %}
-{{ renderQuestion(subQuestion, itemPath, itemHumanIdentifier ~ "." ~ loop.index) }}
-{% else %}
-No follow up questions
 {% endfor %}
-{% else %}
-No answer items
-{% endfor %}
-{% endif %}
+{%- endif %}
 {%- endmacro -%}
 {%- macro renderAnswerChoiceList(question, reply, path, humanIdentifier) -%}
-{%- set chosen = [] -%}
-{%- for choice in question.choices -%}
-  {%- if choice in reply.choices -%}{%- do chosen.append(choice.label) -%}{%- endif -%}
-{%- endfor -%}
-{% if chosen|length > 0 %}{{ chosen | join(", ") }}{% else %}\textit{No choices selected}{% endif %}
+{#- lean: only the selected choices, comma-separated #}
+\begin{answerbox}
+{{ tex(question.choices|select("in", reply.choices)|map(attribute="label")|join(", ")) }}
+\end{answerbox}
 {%- endmacro -%}
 {%- macro renderAnswerItemSelect(question, reply, path, humanIdentifier) -%}
-\begin{itemize}
-  \item[\CheckmarkBold] {{ reply.item_title }}
-\end{itemize}
+\begin{answerbox}
+{{ tex(reply.item_title) }}
+\end{answerbox}
 {%- endmacro -%}
 {%- macro renderAnswerFile(question, reply, path, humanIdentifier) -%}
-\begin{itemize}
 {% if reply.file %}
-  \item[\CheckmarkBold] \href{{ "{" }}{{ reply.file.download_url }}{{ "}" }}{{ "{" }}{{ reply.file.name }}{{ "}" }} ({{ reply.file.size|bytesize_format }})
+\begin{answerbox}
+\href{ {{- url(reply.file.download_url) -}} }{ {{- tex(reply.file.name) -}} } ({{ tex(reply.file.size|bytesize_format) }})
+\end{answerbox}
 {% else %}
-  \item[\XSolidBrush] \textit{The file has been deleted}
+\noanswer{ {%- trans %}The file has been deleted{% endtrans %}}
 {% endif %}
-\end{itemize}
 {%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  QUESTION REPLY MACROS                                                               -#}
@@ -163,7 +192,7 @@ No answer items
   {%- set isRequired = question.is_required -%}
   {%- set reply = question.replies.get(path) -%}
   {%- if reply and reply.value -%}
-    {%- if question is of_type("ValueQuestion") and reply is of_type("StringReply") -%}  {# odend8ni value.#}
+    {%- if question is of_type("ValueQuestion") and reply is of_type("StringReply") -%}
       {{ renderAnswerValue(question, reply, path, humanIdentifier) }}
     {%- elif question is of_type("OptionsQuestion") and reply is of_type("AnswerReply") -%}
       {{ renderAnswerOption(question, reply, path, humanIdentifier) }}
@@ -179,50 +208,59 @@ No answer items
       {{ renderAnswerFile(question, reply, path, humanIdentifier) }}
     {%- endif -%}
   {% else %}
-\begin{itemize}
-  \item[{% if isRequired %}{% endif %}\XSolidBrush] \textit{This question has not been answered yet}
-\end{itemize}
+\{{ "noanswerrequired" if isRequired else "noanswer" }}{ {%- trans %}This question has not been answered yet!{% endtrans %}}
   {% endif -%}
 {%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  QUESTION EXTRAS MACRO                                                               -#}
 {#- ------------------------------------------------------------------------------------ -#}
+{%- macro renderQuestionTags(question) -%}
+  {%- if question.tags|length > 0 %}
+\noindent{% for tag in question.tags %}{% set color = tag.color[1:] if tag.color[0] == "#" else tag.color %}\qtag{ {{- color -}} }{ {{- tex(tag.name) -}} }{% if not loop.last %} {% endif %}{% endfor %}\par
+  {%- endif %}
+{%- endmacro -%}
 {%- macro renderQuestionExtras(question) -%}
   {%- set resourcePageReferences = question.resource_page_references -%}
   {%- set urlReferences = question.url_references -%}
-  {%- set tags = question.tags -%}
   {%- set experts = question.experts -%}
-  {%- if resourcePageReferences|length > 0 or urlReferences|length > 0 or tags|length > 0 or experts|length > 0 %}
-\begin{itemize}
+  {%- if resourcePageReferences|length > 0 or urlReferences|length > 0 or experts|length > 0 %}
+\begin{questionmeta}
+  {%- if resourcePageReferences|length > 0 %}
+  \item \textbf{ {%- trans %}Resource Pages{% endtrans %}}: {% for reference in resourcePageReferences -%}
+  {%- if reference.resource_page_uuid and reference.resource_page and reference.resource_page.collection -%}
+    {%- set resourcePageLink = dc.config.client_url ~ '/knowledge-models/' ~ dc.km_package.id ~ ':' ~ dc.km_package.version ~ '/resource-pages/' ~ reference.resource_page.uuid -%}
+    \href{ {{- url(resourcePageLink) -}} }{ {{- tex(reference.resource_page.collection.title) }} -- {{ tex(reference.resource_page.title) -}} }
+    {%- if not loop.last -%}, {% endif -%}{%- endif -%}{%- endfor -%}
+  {%- endif -%}
   {%- if urlReferences|length > 0 %}
-  \item \textit{External Links}: {% for reference in urlReferences -%}
-    \href{{ "{" }}{{ reference.url }}{{ "}" }}{{ "{" }}{{ reference.label }}{{ "}" }}
+  \item \textbf{ {%- trans %}External Links{% endtrans %}}: {% for reference in urlReferences -%}
+    \href{ {{- url(reference.url) -}} }{ {{- tex(reference.label) -}} }
     {%- if not loop.last -%}, {% endif -%}{%- endfor -%}
   {%- endif -%}
   {% if experts|length > 0 %}
-  \item \textit{Experts}: {% for expert in experts -%}
-    {{expert.name}} $\langle$\href{{ "{" }}mailto:{{ expert.email }}{{ "}" }}{{ "{" }}{{ expert.email }}{{ "}" }}$\rangle$
+  \item \textbf{ {%- trans %}Experts{% endtrans %}}: {% for expert in experts -%}
+    {{ tex(expert.name) }} $\langle$\href{mailto:{{ url(expert.email) }}}{ {{- tex(expert.email) -}} }$\rangle$
     {%- if not loop.last -%}, {% endif -%}{%- endfor -%}
-  {%- endif -%}
-\end{itemize}
+  {%- endif %}
+\end{questionmeta}
   {%- endif -%}
 {%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  QUESTION MACROS                                                                     -#}
 {#- ------------------------------------------------------------------------------------ -#}
-{%- macro renderQuestion(question, path, humanIdentifier, topLevel) -%}
+{%- macro renderQuestion(question, path, humanIdentifier) -%}
 {%- set path = path ~ "." ~ question.uuid -%}
-{% if topLevel %}
-\section*{{ "{" }}\protect\textcolor{colorSecId}{{ "{" }}{{humanIdentifier}}{{ "}" }} {{question.title}}{{ "}" }}
-{% else %}
-\subsection*{{ "{" }}\protect\textcolor{colorSecId}{{ "{" }}{{humanIdentifier}}{{ "}" }} {{question.title}}{{ "}" }}
-{% endif %}
-\label{{ "{" }}{{path}}{{ "}" }}
+{#- I.1 = question of a chapter, each further ".a.1" one level of follow-ups deeper -#}
+{%- set depth = ((humanIdentifier|string).count(".") - 1) // 2 -%}
+{%- set command = ["section", "subsection", "subsubsection"][[depth, 2]|min] %}
+\{{ command }}*{\qnumber{ {{- humanIdentifier -}} }{{ tex(question.title) }}}
+{%- if depth == 0 %}
+\addcontentsline{toc}{section}{ {{- humanIdentifier }} {{ tex(question.title) -}} }
+{%- endif %}
+\label{ {{- path -}} }
 % uuid: {{question.uuid}}
 % path: {{path}}
-
 {{ renderQuestionExtras(question) }}
-
 
 {{ renderQuestionReply(question, path, humanIdentifier) }}
 
@@ -230,179 +268,267 @@ No answer items
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  REPORT MACROS                                                                       -#}
 {#- ------------------------------------------------------------------------------------ -#}
-{%- macro progressBar(value) -%}
-{%- set color = "colorBarAwful" -%}
-{%- if value > 0.95 -%}
-  {%- set color = "colorBarAwesome" -%}
-{%- elif value > 0.8 -%}
-  {%- set color = "colorBarNice" -%}
-{%- elif value > 0.6 -%}
-  {%- set color = "colorBarGood" -%}
-{%- elif value > 0.4 -%}
-  {%- set color = "colorBarAverage" -%}
-{%- elif value > 0.2 -%}
-  {%- set color = "colorBarBad" -%}
+{%- macro progressBar(value, scale=false) -%}
+{%- set color = "qrAccent" -%}
+{%- if scale -%}
+{%- set color = "qrScale" ~ ((value * 10)|int) -%}
 {%- endif -%}
-\progressbar[subdivisions=10,width=15em,heighta=10pt,filledcolor={{color}}]{{ "{" }}{{value}}{{ "}" }}
+\progressbar[width=0.36\linewidth, heighta=5pt, subdivisions=1, borderwidth=0pt, linecolor=qrBar, emptycolor=qrBar, filledcolor={{color}}, roundnessr=0.2]{ {{- value -}} }
 {%- endmacro -%}
 {%- macro renderReport(report) -%}
-\begin{table}[h]
-  \centering
-  \begin{tabular}{ l c r }
+\begin{reportbox}
+\begin{tabularx}{\linewidth}{@{}X r l@{}}
 {%- for item in report.indications %}
-    Answered {% if item.is_for_phase %}(current phase){% endif %} & {{item.answered}} / {{item.total}} & {{ progressBar(item.percentage) }} \\
+  {% if item.is_for_phase %}{% trans %}Answered (current phase){% endtrans %}{% else %}{% trans %}Answered{% endtrans %}{% endif %} & \textcolor{qrMuted}{ {{- item.answered }} / {{ item.total -}} } & {{ progressBar(item.percentage) }} \\
 {%- endfor %}
-    & & \\ \hline
-    & & \\
 {%- if report.metrics|length > 0 %}
+  \midrule
+  \metalabel{ {%- trans %}Metric{% endtrans %}} & \metalabel{ {%- trans %}Score{% endtrans %}} & \\
 {%- for item in report.metrics %}
-    {{item.metric.title}} & {{ "%.2f"|format(item.measure) }} & {{ progressBar(item.measure) }} \\
+  {{ tex(item.metric.title) }} & \textcolor{qrMuted}{ {{- "%.2f"|format(item.measure) -}} } & {{ progressBar(item.measure, scale=true) }} \\
 {%- endfor -%}
 {%- endif %}
-  \end{tabular}
-\end{table}
+\end{tabularx}
+\end{reportbox}
 {%- endmacro -%}
 {%- macro renderVersions() -%}
-{% if dc.project.versions|length > 0 %}
-\section*{History of Versions}
+{% if dc.questionnaire.versions|length > 0 %}
+\section*{ {%- trans %}History of Versions{% endtrans %}}
 
-\begin{table}[h]
-	\centering
-	\begin{tabular}{ c c p{0.6\linewidth} }
-		Version & Date & Description \\ \hline\hline\Tstrut
-{%- for version in dc.project.versions|reverse %}
-		{{ version.name }}  & {{ version.created_at|datetime_format("%d %b %Y") }} & {{ version.description }} \\ \hline\Tstrut
+\noindent
+\begin{tabularx}{\linewidth}{@{}l l X@{}}
+  \toprule
+  \metalabel{ {%- trans %}Version{% endtrans %}} & \metalabel{ {%- trans %}Date{% endtrans %}} & \metalabel{ {%- trans %}Description{% endtrans %}} \\
+  \midrule
+{%- for version in dc.questionnaire.versions|reverse %}
+  \textbf{ {{- tex(version.name) -}} } & \textcolor{qrMuted}{ {{- formatDate(version.created_at) -}} } & {{ tex(version.description) }} \\
 {%- endfor %}
-  \end{tabular}
-\end{table}
+  \bottomrule
+\end{tabularx}
 {% endif %}
 {%- endmacro -%}
 {#- ------------------------------------------------------------------------------------ -#}
-{#-  INTRODUCTION                                                                        -#}
+{#-  PREAMBLE                                                                            -#}
 {#- ------------------------------------------------------------------------------------ -#}
-\documentclass[a4paper,12pt]{report}
+\documentclass[a4paper,11pt]{report}
 \usepackage[utf8]{inputenc}
-\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+{#- TRANSLATORS: language option of the LaTeX babel package for this translation, e.g. czech, german, dutch #}
+\usepackage[{{ pgettext('LaTeX babel language', 'english') }}]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
 
-\usepackage{geometry}
-\geometry{
-  a4paper,
-  left=20mm,
-  top=20mm,
-  bottom=20mm,
-  right=20mm,
-}
-
-\usepackage{bbding}
-\usepackage{color}
-\usepackage{xcolor}
-\usepackage{soul}
-\usepackage{hyperref}
+\usepackage[a4paper, left=22mm, right=22mm, top=25mm, bottom=22mm, headheight=14pt]{geometry}
+\usepackage[table]{xcolor}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage[titles]{tocloft}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[skins,breakable]{tcolorbox}
 \usepackage[hashEnumerators,smartEllipses]{markdown}
 \usepackage{progressbar}
 \usepackage{xurl}
+\usepackage[bookmarksdepth=1]{hyperref}
 
-\renewcommand{\thechapter}{\Roman{chapter}}
-
-\setul{0.3ex}{0.3ex}
-
-% Custom colors
-\definecolor{colorSecId}{HTML}{0060c7}
-\definecolor{colorReqQ}{HTML}{FF0000}
-% Progress bar colors
-\definecolor{colorBarAwful}{HTML}{DC3545}
-\definecolor{colorBarBad}{HTML}{EA6D2C}
-\definecolor{colorBarAverage}{HTML}{D4BC13}
-\definecolor{colorBarGood}{HTML}{A9B720}
-\definecolor{colorBarNice}{HTML}{7EB12C}
-\definecolor{colorBarAwesome}{HTML}{28A745}
-% Colors for tags (underline)
+% Colours (the same as in the HTML/PDF format)
+\definecolor{qrAccent}{HTML}{1D5F8A}
+\definecolor{qrAccentDark}{HTML}{123F5C}
+\definecolor{qrAccentSoft}{HTML}{E8F1F7}
+\definecolor{qrText}{HTML}{212529}
+\definecolor{qrMuted}{HTML}{5F6B76}
+\definecolor{qrLight}{HTML}{8A949E}
+\definecolor{qrBorder}{HTML}{DDE2E6}
+\definecolor{qrSurface}{HTML}{F5F7F9}
+\definecolor{qrBar}{HTML}{E3E8EC}
+\definecolor{qrDanger}{HTML}{B4232F}
+\definecolor{qrDangerSoft}{HTML}{FBECED}
+% Score colours (0 = worst, 10 = best)
+\definecolor{qrScale0}{HTML}{B4232F}
+\definecolor{qrScale1}{HTML}{BF3B2D}
+\definecolor{qrScale2}{HTML}{C9542B}
+\definecolor{qrScale3}{HTML}{D26F28}
+\definecolor{qrScale4}{HTML}{D98A22}
+\definecolor{qrScale5}{HTML}{D9A51C}
+\definecolor{qrScale6}{HTML}{B9A822}
+\definecolor{qrScale7}{HTML}{93A52B}
+\definecolor{qrScale8}{HTML}{6F9D35}
+\definecolor{qrScale9}{HTML}{4D9440}
+\definecolor{qrScale10}{HTML}{2C8A4B}
+% Tag colours
 {%- for tag in dc.km.tags -%}
 {%- set color = tag.color[1:] if tag.color[0] == "#" else tag.color %}
-\definecolor{{ "{" }}{{color}}{{ "}" }}{HTML}{{ "{" }}{{color}}{{ "}" }}
+\definecolor{ {{- color -}} }{HTML}{ {{- color -}} }
 {%- endfor %}
 
-% Strut for table
-\newcommand\Tstrut{\rule{0pt}{2.6ex}}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=qrAccent,
+  urlcolor=qrAccent,
+  pdftitle={ {{- tex(dc.project.name) -}} },
+  pdfsubject={ {%- trans %}Questionnaire Report{% endtrans %}},
+}
+\newcommand{\qrProjectName}{ {{- tex(dc.project.name) -}} }
+\arrayrulecolor{qrBorder}
+\color{qrText}
+
+{% raw %}% Headings: sans-serif, accent colour, chapters numbered with Roman numerals
+\renewcommand{\thechapter}{\Roman{chapter}}
+\titleformat{\chapter}[block]
+  {\sffamily\bfseries\huge\color{qrAccentDark}}{\thechapter.}{0.4em}{}
+  [\vspace{1ex}{\color{qrAccent}\titlerule[1.5pt]}]
+\titleformat{name=\chapter,numberless}[block]
+  {\sffamily\bfseries\huge\color{qrAccentDark}}{}{0pt}{}
+  [\vspace{1ex}{\color{qrAccent}\titlerule[1.5pt]}]
+\titlespacing*{\chapter}{0pt}{0pt}{4ex}
+\titleformat{\section}{\sffamily\bfseries\large\color{qrAccentDark}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{0.6ex}
+\titleformat{\subsection}{\sffamily\bfseries\normalsize\color{qrAccentDark}}{}{0pt}{}
+\titlespacing*{\subsection}{0pt}{2.5ex plus 1ex minus .2ex}{0.5ex}
+\titleformat{\subsubsection}{\sffamily\bfseries\normalsize\color{qrAccentDark}}{}{0pt}{}
+\titlespacing*{\subsubsection}{0pt}{2ex plus 1ex minus .2ex}{0.4ex}
+\setcounter{tocdepth}{0}
+\setlength{\cftchapnumwidth}{3em}
+\renewcommand{\cftchapfont}{\sffamily\bfseries}
+\renewcommand{\cftchappagefont}{\sffamily\bfseries}
+
+% Question number before the title
+\newcommand{\qnumber}[1]{\textcolor{qrAccent}{#1}\hspace{0.5em}}
+
+% Running header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{{\color{qrBorder}\hrule width\headwidth height\headrulewidth}}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
+\fancyhead[L]{\sffamily\footnotesize\color{qrLight}\nouppercase{\qrProjectName}}
+\fancyhead[R]{\sffamily\footnotesize\color{qrLight}\nouppercase{\leftmark}}
+\fancyfoot[R]{\sffamily\footnotesize\color{qrLight}\thepage\ / \pageref*{LastPage}}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \fancyfoot[R]{\sffamily\footnotesize\color{qrLight}\thepage\ / \pageref*{LastPage}}
+}
+
+% Small uppercase labels
+\newcommand{\metalabel}[1]{{\sffamily\scriptsize\bfseries\color{qrMuted}\MakeUppercase{#1}}}
+\newcommand{\sectionlabel}[1]{\par\vspace{0.5ex}\noindent\metalabel{#1}\par\nopagebreak}
+
+% Question tags (coloured labels)
+\newcommand{\qtag}[2]{{\setlength{\fboxsep}{1.5pt}\colorbox{#1}{\sffamily\scriptsize\bfseries\textcolor{white}{\strut#2}}}}
+
+% Question text and extras
+\newenvironment{questiontext}{\par\small\color{qrMuted}}{\par}
+\newenvironment{questionmeta}
+  {\begin{itemize}[leftmargin=0pt, nosep, label={}, font=\footnotesize]\footnotesize\color{qrMuted}}
+  {\end{itemize}}
+
+% Answers
+\newtcolorbox{answerbox}{enhanced, breakable, colback=qrSurface, frame hidden, arc=0pt,
+  borderline west={2pt}{0pt}{qrAccent}, left=7pt, right=6pt, top=3pt, bottom=3pt,
+  before skip=0.6ex, after skip=1.2ex, fontupper=\bfseries}
+\newtcolorbox{advicebox}{enhanced, breakable, colback=qrAccentSoft, frame hidden, arc=0pt,
+  borderline west={1.5pt}{0pt}{qrAccent}, left=7pt, right=6pt, top=3pt, bottom=3pt,
+  before skip=0.4ex, after skip=1.2ex, fontupper=\small\color{qrAccentDark}}
+\newtcolorbox{noanswerbox}[3]{enhanced, colback=#2, frame hidden, arc=0pt,
+  borderline west={2pt}{0pt}{#1}, left=7pt, right=6pt, top=2pt, bottom=2pt,
+  before skip=0.6ex, after skip=1.2ex, fontupper=\small\itshape\color{#3}}
+\newcommand{\noanswer}[1]{\begin{noanswerbox}{qrBorder}{white}{qrLight}#1\end{noanswerbox}}
+\newcommand{\noanswerrequired}[1]{\begin{noanswerbox}{qrDanger}{qrDangerSoft}{qrDanger}#1\end{noanswerbox}}
+\newcommand{\answeritem}[1]{\par\vspace{1.5ex}{\color{qrBorder}\hrule height 0.6pt}\vspace{0.6ex}
+  \noindent{\sffamily\footnotesize\bfseries\color{qrAccent}#1}\par\nopagebreak}
+
+% Summary reports
+\newtcolorbox{reportbox}{enhanced, colback=qrSurface, colframe=qrBorder, boxrule=0.4pt,
+  arc=2mm, left=8pt, right=8pt, top=6pt, bottom=6pt, before skip=1ex, after skip=3ex}
+{% endraw %}
 
 \begin{document}
+{#- ------------------------------------------------------------------------------------ -#}
+{#-  TITLE PAGE                                                                          -#}
+{#- ------------------------------------------------------------------------------------ -#}
 
 \begin{titlepage}
-    \begin{center}
-        \vspace*{1cm}
-            
-        \Huge
-        \textbf{{ "{" }}{{dc.project.name}}{{ "}" }}
-            
-        \vspace{0.5cm}
-        \LARGE
-        Questionnaire Report 
-            
-        \vspace{1.5cm}
-            
-{%- if dc.project.created_by %}
-        \Large
-        \textbf{{ "{" }}{{dc.project.created_by.first_name}} {{dc.project.created_by.last_name}}{{ "}" }}\\
-        {{dc.project.created_by.email}}
-{%- endif %}
-        \vspace{1.5cm}
+  \thispagestyle{empty}
+  \noindent{\color{qrAccent}\rule{\linewidth}{6pt}}
 
-        \normalsize
-        Based on\\
-        {{dc.pkg.name}}, {{dc.pkg.version}}\\
-        \texttt{{"{"}}{{dc.pkg.org_id}}:{{dc.pkg.km_id}}:{{dc.pkg.version}}{{"}"}}\\
-        {%- for version in dc.project.versions if version.uuid == dc.project.version %}
-        \vspace{0.5cm}
-        Version: {{ version.name }} ({{ version.created_at|datetime_format("%d %b %Y %H:%M:%S") }} UTC)\\
-        {%- endfor %}
-        \vspace{0.5cm}
-        Selected tags: {{ renderAllUniqueTags(dc.km) }}\\
-        {%- if dc.current_phase %}
-        \vspace{0.5cm}
-        Project phase: {{dc.current_phase.title}}\\
-        {%- endif %}
-        {%- if dc.project.description %}
-        \vspace{0.25cm}
-        Description: {{ dc.project.description }}\\
-        {%- endif %}
-            
-        \vfill
-            
-        \Large
-        {{ "{" }}{{ dc.doc.created_at|datetime_format("%d %b %Y") }}{{ "}" }}
-            
-        \vspace{0.8cm}
-        
-        \normalsize
-        Document generated by \href{{ "{" }}{{ dc.config.client_url }}{{ "}" }}{{ "{" }}{{ dc.config.app_title }}{{ "}" }}
-    \end{center}
+  \vspace*{40mm}
+
+  \noindent{\sffamily\bfseries\fontsize{30}{36}\selectfont\color{qrAccentDark}{{ tex(dc.project.name) }}\par}
+
+  \vspace{4mm}
+  \noindent{\color{qrAccent}\rule{\linewidth}{2pt}}
+
+  \vspace{2mm}
+  \noindent{\sffamily\Large\color{qrMuted}{% trans %}Questionnaire Report{% endtrans %}\par}
+
+  \vspace{14mm}
+  \renewcommand{\arraystretch}{1.6}%
+  \noindent\begin{tabularx}{\linewidth}{@{}l@{\hspace{8mm}}X@{}}
+{%- if dc.project.created_by %}
+    \metalabel{ {%- trans %}Created by{% endtrans %}} & {{ tex(dc.project.created_by.first_name) }} {{ tex(dc.project.created_by.last_name) }} (\href{mailto:{{ url(dc.project.created_by.email) }}}{ {{- tex(dc.project.created_by.email) -}} }) \\ \hline
+{%- endif %}
+    \metalabel{ {%- trans %}Based on{% endtrans %}} & {{ tex(dc.km_package.name) }}, {{ tex(dc.km_package.version) }} \textcolor{qrLight}{(\texttt{\small {{ tex(dc.km_package.id) }}:{{ tex(dc.km_package.version) }}})} \\ \hline
+{%- for version in dc.questionnaire.versions if dc.questionnaire.version and version.uuid == dc.questionnaire.version.uuid %}
+    \metalabel{ {%- trans %}Version{% endtrans %}} & {% trans name=tex(version.name), date=formatDateTime(version.created_at) %}{{ name }} ({{ date }} UTC){% endtrans %} \\ \hline
+{%- endfor %}
+{%- set selectedTags = dc.km.tags|selectattr("uuid", "in", dc.project.selected_question_tag_uuids)|list if dc.project else [] %}
+{%- if selectedTags|length > 0 %}
+    \metalabel{ {%- trans %}Selected Tags{% endtrans %}} & {% for tag in selectedTags %}{% set color = tag.color[1:] if tag.color[0] == "#" else tag.color %}\qtag{ {{- color -}} }{ {{- tex(tag.name) -}} }{% if not loop.last %} {% endif %}{% endfor %} \\ \hline
+{%- endif %}
+{%- if dc.questionnaire.phase_uuid %}
+    \metalabel{ {%- trans %}Project Phase{% endtrans %}} & {{ tex(dc.questionnaire.phase.title) }} \\ \hline
+{%- endif %}
+{%- if dc.project.project_tags|length > 0 %}
+    \metalabel{ {%- trans %}Project Tags{% endtrans %}} & {% for tag in dc.project.project_tags %}\qtag{qrAccent}{ {{- tex(tag) -}} }{% if not loop.last %} {% endif %}{% endfor %} \\ \hline
+{%- endif %}
+{%- if dc.project.description %}
+    \metalabel{ {%- trans %}Description{% endtrans %}} & {{ tex(dc.project.description) }} \\ \hline
+{%- endif %}
+    \metalabel{ {%- trans %}Created at{% endtrans %}} & {{ formatDate(dc.document.created_at) }} \\ \hline
+  \end{tabularx}
+
+  \vfill
+  \begin{center}
+    \sffamily\footnotesize\color{qrLight}
+    {%- set serviceLink -%}\href{ {{- url(dc.config.client_url) -}} }{ {{- tex(dc.config.app_title) -}} }{%- endset %}
+    {% trans service=serviceLink %}Document generated by {{ service }}{% endtrans %}
+  \end{center}
 \end{titlepage}
 
-\chapter*{Report Summary}
+\chapter*{ {%- trans %}Report Summary{% endtrans %}}
+\markboth{ {%- trans %}Report Summary{% endtrans %}}{}
+\addcontentsline{toc}{chapter}{ {%- trans %}Report Summary{% endtrans %}}
 
-{{ renderReport(dc.report.total_report) }}
+{{ renderReport(dc.questionnaire.report.total_report) }}
 
 {{ renderVersions() }}
 
 {% for chapter in dc.km.chapters %}
 {% set chapterId = loop.index|roman %}
-\chapter{{ "{" }}{{chapter.title}}{{ "}" }}
-\label{{ "{" }}{{chapter.uuid}}{{ "}" }}
+\chapter{ {{- tex(chapter.title) -}} }
+\label{ {{- chapter.uuid -}} }
 % uuid: {{chapter.uuid}}
 % path: {{chapter.uuid}}
 
 {%- if chapter.text %}
+\begin{questiontext}
 \begin{markdown}
 {{chapter.text}}
 \end{markdown}
+\end{questiontext}
 {%- endif %}
 
-{% for chapterReport in chapter.reports %}
-
 {% for question in chapter.questions %}
-{{ renderQuestion(question, chapter.uuid, chapterId ~ "." ~ loop.index, True) }}
+{{ renderQuestion(question, chapter.uuid, chapterId ~ "." ~ loop.index) }}
 {% endfor %}
 
 {% endfor %}
 
 \end{document}
+{% endautoescape %}

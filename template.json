@@ -1,35 +1,18 @@
 {
-  "templateId": "questionnaire-report-lean",
-  "organizationId": "research.data.no",
-  "version": "2.17.2",
+  "id": "research.data.no.questionnaire-report-lean",
+  "version": "3.0.0",
   "name": "Questionnaire Report - lean",
   "description": "Exported questions and answers from a questionnaire",
+  "metamodelVersion": "19.0",
   "license": "Apache-2.0",
-  "metamodelVersion": "18.0",
   "allowedPackages": [
     {
-      "orgId": null,
-      "kmId": null,
+      "id": null,
       "minVersion": null,
       "maxVersion": null
     }
   ],
   "formats": [
-    {
-      "uuid": "a9293d08-59a4-4e6b-ae62-7a6a570b031c",
-      "name": "HTML Document",
-      "icon": "far fa-file-code",
-      "steps": [
-        {
-          "name": "jinja",
-          "options": {
-            "content-type": "text/html",
-            "extension": "html",
-            "template": "src/default.html.j2"
-          }
-        }
-      ]
-    },
     {
       "uuid": "d3e98eb6-344d-481f-8e37-6a67b6cd1ad2",
       "name": "JSON Data",
@@ -42,54 +25,16 @@
       ]
     },
     {
-      "uuid": "dbc94579-40d7-42c3-975c-71e30d07778b",
-      "name": "LaTeX Document",
-      "icon": "far fa-file-alt",
+      "uuid": "a9293d08-59a4-4e6b-ae62-7a6a570b031c",
+      "name": "HTML Document",
+      "icon": "far fa-file-code",
       "steps": [
         {
           "name": "jinja",
           "options": {
-            "content-type": "text/x-tex",
-            "extension": "tex",
-            "template": "src/default.tex.j2"
-          }
-        }
-      ]
-    },
-    {
-      "uuid": "f0533e48-f4c5-4af2-b2c1-5a47d4a247c0",
-      "name": "Markdown Document",
-      "icon": "far fa-file-alt",
-      "steps": [
-        {
-          "name": "jinja",
-          "options": {
+            "template": "src/default.html.j2",
             "content-type": "text/html",
-            "extension": "md",
-            "template": "src/default.md.j2"
-          }
-        }
-      ]
-    },
-    {
-      "uuid": "f4bd941a-dfbe-4226-a1fc-200fb5269311",
-      "name": "MS Word Document",
-      "icon": "far fa-file-word",
-      "steps": [
-        {
-          "name": "jinja",
-          "options": {
-            "content-type": "text/html",
-            "extension": "html",
-            "template": "src/for-word.html.j2"
-          }
-        },
-        {
-          "name": "pandoc",
-          "options": {
-            "args": "--filter=pandoc-docx-pagebreakpy --reference-doc=src/reference.docx",
-            "from": "html",
-            "to": "docx"
+            "extension": "html"
           }
         }
       ]
@@ -102,9 +47,9 @@
         {
           "name": "jinja",
           "options": {
+            "template": "src/default.html.j2",
             "content-type": "text/html",
-            "extension": "html",
-            "template": "src/default.html.j2"
+            "extension": "html"
           }
         },
         {
@@ -112,20 +57,68 @@
           "options": {}
         }
       ]
+    },
+    {
+      "uuid": "dbc94579-40d7-42c3-975c-71e30d07778b",
+      "name": "LaTeX Document",
+      "icon": "far fa-file-alt",
+      "steps": [
+        {
+          "name": "jinja",
+          "options": {
+            "template": "src/default.tex.j2",
+            "content-type": "text/x-tex",
+            "extension": "tex"
+          }
+        }
+      ]
+    },
+    {
+      "uuid": "f4bd941a-dfbe-4226-a1fc-200fb5269311",
+      "name": "MS Word Document",
+      "icon": "far fa-file-word",
+      "steps": [
+        {
+          "name": "jinja",
+          "options": {
+            "template": "src/for-word.html.j2",
+            "content-type": "text/html",
+            "extension": "html"
+          }
+        },
+        {
+          "name": "pandoc",
+          "options": {
+            "from": "html",
+            "to": "docx",
+            "args": "--filter=pandoc-docx-pagebreakpy --reference-doc=src/reference.docx"
+          }
+        }
+      ]
+    },
+    {
+      "uuid": "f0533e48-f4c5-4af2-b2c1-5a47d4a247c0",
+      "name": "Markdown Document",
+      "icon": "far fa-file-alt",
+      "steps": [
+        {
+          "name": "jinja",
+          "options": {
+            "template": "src/default.md.j2",
+            "content-type": "text/markdown",
+            "extension": "md"
+          }
+        }
+      ]
     }
   ],
   "_tdk": {
-    "version": "4.28.0",
+    "version": "5.0.0",
     "readmeFile": "README.md",
     "files": [
-	  "src/default.css",
-	  "src/default.md.j2",
-	  "src/for-word.html.j2",
-	  "src/default.html.j2",  
-	  "src/default.tex.j2",
-	  "src/reference.docx",
-      "!.git/",
-      "!.env"
+      "src/**/*",
+      "!**/.DS_Store"
     ]
-  }
+  },
+  "language": "en"
 }
