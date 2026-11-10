@@ -4,6 +4,7 @@
 {#- ------------------------------------------------------------------------------------ -#}
 {%- set dc = ctx|to_context_obj -%}
 {%- from "src/dates.j2" import formatDate, formatDateTime -%}
+{%- from "src/lists.j2" import useTable -%}
 {#- ------------------------------------------------------------------------------------ -#}
 {#-  TAGS, REFERENCES, and EXPERTS MACROS                                                 -#}
 {#- ------------------------------------------------------------------------------------ -#}
@@ -87,10 +88,7 @@
 {%- macro renderAnswerList(question, reply, path, humanIdentifier) -%}
 {%- set itemPathPrefix = path ~ "." -%}
 {%- set hiPrefix = humanIdentifier ~ "." -%}
-{#- lean: table only if sub-questions plus their nested follow-ups are fewer than 6; nested answers go into the cells #}
-{%- set nested = [] %}{% for fq in question.followups %}{{ collectFollowups(fq, nested) }}{% endfor %}
-{%- if question.followups|length > 0 and question.followups|length + nested|length < 6 %}
-{#- lean: table view (items as rows, sub-questions as columns) for fewer than 6 sub-questions -#}
+{%- if useTable(question) %}
 | # | {% for fq in question.followups %}{{ fq.title|replace("|", "\\|") }} | {% endfor %}
 | --- | {% for fq in question.followups %}--- | {% endfor %}
 {%- for i in reply.items %}
@@ -116,14 +114,6 @@
 {%- endfor -%}
 {%- endif -%}
 {%- endmacro -%}
-{%- macro collectFollowups(question, acc) -%}
-{#- lean: all follow-up questions below a sub-question (answers of options, items of lists), recursively #}
-{%- if question is of_type("OptionsQuestion") -%}
-{%- for answer in question.answers -%}{%- for fu in answer.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}{%- endfor -%}
-{%- elif question is of_type("ListQuestion") -%}
-{%- for fu in question.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}
-{%- endif -%}
-{%- endmacro -%}
 {%- macro renderCellFollowups(questions, basePath, mode) -%}
 {#- lean: answered follow-ups inside a table cell; mode: lines (top level), inline (deeper), item (fields of a list item) #}
 {%- for q in questions if q.replies.get(basePath ~ "." ~ q.uuid) and q.replies.get(basePath ~ "." ~ q.uuid).value -%}
@@ -137,7 +127,7 @@
 {%- if fq is of_type("ValueQuestion") and fqReply is of_type("StringReply") -%}
 {{ fqReply.markdown_plain }}
 {%- elif fqReply.is_integration or fqReply.is_legacy_integration -%}
-{{ fqReply.value }}
+{{ fqReply.value.split(" ![]", 1)[0] }}
 {%- elif fq is of_type("OptionsQuestion") and fqReply is of_type("AnswerReply") -%}
 {{ fqReply.answer.label }}
 {{- renderCellFollowups(fqReply.answer.followups, fqPath ~ "." ~ fqReply.answer.uuid, "lines" if top else "inline") -}}
@@ -206,11 +196,7 @@
 {%- macro renderQuestion(question, path, humanIdentifier) -%}
 {%- set path = path ~ "." ~ question.uuid %}
 #### {{humanIdentifier}} {{question.title}}
-{{- renderQuestionExtras(question) -}}
-{%- if question.text %}
-
-> {{ question.text.replace("\n", "\n> ") }}
-{%- endif %}
+{{- renderQuestionExtras(question) }}
 
 {{ renderQuestionReply(question, path, humanIdentifier) }}
 {%- endmacro -%}
@@ -219,19 +205,19 @@
 {#- ------------------------------------------------------------------------------------ -#}
 {%- macro renderReport(report) -%}
 {%- if report.indications|length > 0 %}
-### {% trans %}Summary{% endtrans %}
 
-{% for item in report.indications -%}
-* {% if item.is_for_phase %}{% trans %}Answered (current phase){% endtrans %}{% else %}{% trans %}Answered{% endtrans %}{% endif %}: **{{item.answered}} / {{item.total}}** ({{"%.2f"|format(item.percentage)}} %)
-{% endfor %}
-{% endif -%}
+### {% trans %}Summary{% endtrans %}
+{% for item in report.indications %}
+* {% if item.is_for_phase %}{% trans %}Answered (current phase){% endtrans %}{% else %}{% trans %}Answered{% endtrans %}{% endif %}: **{{item.answered}} / {{item.total}}** ({{"%.0f"|format(100 * item.percentage)}} %)
+{%- endfor %}
+{%- endif %}
 {%- if report.metrics|length > 0 %}
 
 ### {% trans %}Metrics{% endtrans %}
 {% for item in report.metrics %}
 * {{item.metric.title}}: {{ "%.2f"|format(item.measure) }}
 {%- endfor %}
-{% endif -%}
+{%- endif %}
 {%- endmacro -%}
 {%- macro renderChapter(chapter, humanIdentifier) -%}
 ## {{humanIdentifier|roman}}. {{chapter.title}}
@@ -264,7 +250,7 @@
 {%- if selectedTags|length > 0 %}
 * {% trans %}Selected tags:{% endtrans %} {% for tag in selectedTags %}**{{ tag.name }}**{% if not loop.last %}, {% endif %}{% endfor %}
 {%- endif %}
-{%- if dc.questionnaire.phase_uuid %}
+{%- if dc.questionnaire.phase_uuid and dc.questionnaire.phase.uuid == dc.questionnaire.phase_uuid %}
 * {% trans title=dc.questionnaire.phase.title %}Project phase: **{{ title }}**{% endtrans %}
 {%- endif %}
 {%- if dc.project.project_tags|length > 0 %}
@@ -274,6 +260,9 @@
 * {% trans description=dc.project.description %}Description: **{{ description }}**{% endtrans %}
 {%- endif %}
 * {% trans date=formatDate(dc.document.created_at) %}Created at: **{{ date }}**{% endtrans %}
+
+## {% trans %}Summary Report{% endtrans %}
+{{- renderReport(dc.questionnaire.report.total_report) }}
 
 {% if dc.questionnaire.versions|length > 0 %}
 ## {% trans %}History of Versions{% endtrans %}

@@ -46,11 +46,17 @@ documents in other languages. Content of the knowledge model and the answers are
   versions follow the front page data
 - "Selected tags" shows the question tags selected in the project (hidden if none are selected)
 - Removed the organization from the front page (not part of the document context of DSW 5.0)
-- Fixed project phase shown as "never" for projects without a phase and the missing current version
+- Fixed project phase shown as "never" for projects without a phase or with a phase that is no
+  longer in the knowledge model, and the missing current version
 - Fixed empty integration answers in Markdown
 - Fixed missing follow-up answers in list tables: answered follow-ups are shown inside the table
   cells; the limit of fewer than six columns counts the sub-questions and all their nested
   follow-ups, larger lists are shown as items
+- Integration answers in list tables show the full value without the logo in all formats
+  (LaTeX showed only the first line, HTML/PDF and Markdown the logo)
+- Links to items of lists that are shown inside a table cell work in HTML/PDF
+- Markdown: the summary follows the front page data and question texts are left out, as in the
+  other formats
 - Fixed LaTeX format that failed to render (since 2.17.1)
 
 ### 2.17.2

@@ -4,6 +4,7 @@
 {# ------------------------------------------------------------------------------------ #}
 {%- set dc = ctx|to_context_obj -%}
 {%- from "src/dates.j2" import formatDate, formatDateTime -%}
+{%- from "src/lists.j2" import useTable -%}
 {# ------------------------------------------------------------------------------------ #}
 {#  TAGS, REFERENCES, and EXPERTS MACROS                                                 #}
 {# ------------------------------------------------------------------------------------ #}
@@ -115,10 +116,7 @@
     <div data-custom-style="Section Label"><p>{% trans count=reply.items|length %}Answers ({{ count }} item){% pluralize %}Answers ({{ count }} items){% endtrans %}</p></div>
     {% set itemPathPrefix = path ~ "." %}
     {% set hiPrefix = humanIdentifier ~ "." %}
-    {#- lean: table only if sub-questions plus their nested follow-ups are fewer than 6; nested answers go into the cells #}
-    {%- set nested = [] %}{% for fq in question.followups %}{{ collectFollowups(fq, nested) }}{% endfor %}
-    {% if question.followups|length > 0 and question.followups|length + nested|length < 6 %}
-    {# lean: table view (items as rows, sub-questions as columns) for fewer than 6 sub-questions #}
+    {% if useTable(question) %}
     <table>
       <colgroup>
         <col style="width: 4%"/>
@@ -164,14 +162,6 @@
     {% endfor %}
     {% endif %}
   </div>
-{%- endmacro -%}
-{%- macro collectFollowups(question, acc) -%}
-{#- lean: all follow-up questions below a sub-question (answers of options, items of lists), recursively #}
-{%- if question is of_type("OptionsQuestion") -%}
-{%- for answer in question.answers -%}{%- for fu in answer.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}{%- endfor -%}
-{%- elif question is of_type("ListQuestion") -%}
-{%- for fu in question.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}
-{%- endif -%}
 {%- endmacro -%}
 {%- macro renderCellFollowups(questions, basePath, mode) -%}
 {#- lean: answered follow-ups inside a table cell; mode: lines (top level), inline (deeper), item (fields of a list item) #}
@@ -359,7 +349,7 @@
       <td>{{ selectedTags|map(attribute="name")|join(", ") }}</td>
     </tr>
     {% endif %}
-    {% if dc.questionnaire.phase_uuid %}
+    {% if dc.questionnaire.phase_uuid and dc.questionnaire.phase.uuid == dc.questionnaire.phase_uuid %}
     <tr>
       <th>{% trans %}Project Phase{% endtrans %}</th>
       <td>{{dc.questionnaire.phase.title}}</td>

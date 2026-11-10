@@ -3,6 +3,7 @@
 {#- ------------------------------------------------------------------------------------ -#}
 {%- set dc = ctx|to_context_obj -%}
 {%- from "src/dates.j2" import formatDate, formatDateTime -%}
+{%- from "src/lists.j2" import useTable -%}
 {#- LaTeX output: no HTML escaping, values from the context are escaped by tex() instead -#}
 {%- autoescape false -%}
 {#- ------------------------------------------------------------------------------------ -#}
@@ -85,13 +86,14 @@
 {#- lean: tex() for table cells, long words (e-mails, URLs, identifiers) may break after @ . / #}
 {{- tex(value)|replace("@", "@\\allowbreak{}")|replace(".", ".\\allowbreak{}")|replace("/", "/\\allowbreak{}") -}}
 {%- endmacro -%}
-{%- macro collectFollowups(question, acc) -%}
-{#- lean: all follow-up questions below a sub-question (answers of options, items of lists), recursively #}
-{%- if question is of_type("OptionsQuestion") -%}
-{%- for answer in question.answers -%}{%- for fu in answer.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}{%- endfor -%}
-{%- elif question is of_type("ListQuestion") -%}
-{%- for fu in question.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}
-{%- endif -%}
+{%- macro markdownCell(value) -%}
+{#- lean: markdown as plain text for a table cell, as shown in HTML: paragraphs, list items and
+    line breaks are separated by "; " (markdown is converted first, so emphasis may span lines) #}
+{%- set ns = namespace(parts=[value|markdown]) -%}
+{%- for tag in ["<br>", "<br/>", "<br />", "</p>", "</li>", "</h1>", "</h2>", "</h3>", "</h4>", "</h5>", "</h6>", "</tr>", "</blockquote>", "</pre>"] -%}
+{%- set acc = [] -%}{%- for part in ns.parts -%}{%- for p in part.split(tag) -%}{%- do acc.append(p) -%}{%- endfor -%}{%- endfor -%}{%- set ns.parts = acc -%}
+{%- endfor -%}
+{{- ns.parts|map("striptags")|map("trim")|select|join("; ") -}}
 {%- endmacro -%}
 {%- macro renderCellFollowups(questions, basePath, mode) -%}
 {#- lean: answered follow-ups inside a table cell; mode: lines (top level), inline (deeper), item (fields of a list item) #}
@@ -106,7 +108,7 @@
 {%- if fq is of_type("ValueQuestion") and fqReply is of_type("StringReply") -%}
 {{ cell(fqReply.markdown_plain) }}
 {%- elif fqReply.is_integration or fqReply.is_legacy_integration -%}
-{{ cell(fqReply.item_title) }}
+{{ cell(markdownCell(fqReply.value.split("![]", 1)[0])) }}
 {%- elif fq is of_type("OptionsQuestion") and fqReply is of_type("AnswerReply") -%}
 {{ cell(fqReply.answer.label) }}
 {{- renderCellFollowups(fqReply.answer.followups, fqPath ~ "." ~ fqReply.answer.uuid, "lines" if top else "inline") -}}
@@ -132,10 +134,7 @@
 {%- set itemPathPrefix = path ~ "." -%}
 {%- set hiPrefix = humanIdentifier ~ "." %}
 \sectionlabel{ {%- trans count=reply.items|length %}Answered with {{ count }} item as follows.{% pluralize %}Answered with {{ count }} items as follows.{% endtrans %}}
-{#- lean: table only if sub-questions plus their nested follow-ups are fewer than 6; nested answers go into the cells #}
-{%- set nested = [] %}{% for fq in question.followups %}{{ collectFollowups(fq, nested) }}{% endfor %}
-{%- if question.followups|length > 0 and question.followups|length + nested|length < 6 %}
-{#- lean: table view (items as rows, sub-questions as columns) for fewer than 6 sub-questions #}
+{%- if useTable(question) %}
 {%- set n = question.followups|length %}
 {\footnotesize
 \begin{longtable}{@{}r*{ {{- n -}} }{>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-2em)/{{ n }}-2\tabcolsep\relax}}@{}}
@@ -481,7 +480,7 @@
 {%- if selectedTags|length > 0 %}
     \metalabel{ {%- trans %}Selected Tags{% endtrans %}} & {% for tag in selectedTags %}{% set color = tag.color[1:] if tag.color[0] == "#" else tag.color %}\qtag{ {{- color -}} }{ {{- tex(tag.name) -}} }{% if not loop.last %} {% endif %}{% endfor %} \\ \hline
 {%- endif %}
-{%- if dc.questionnaire.phase_uuid %}
+{%- if dc.questionnaire.phase_uuid and dc.questionnaire.phase.uuid == dc.questionnaire.phase_uuid %}
     \metalabel{ {%- trans %}Project Phase{% endtrans %}} & {{ tex(dc.questionnaire.phase.title) }} \\ \hline
 {%- endif %}
 {%- if dc.project.project_tags|length > 0 %}

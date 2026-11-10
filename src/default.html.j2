@@ -4,6 +4,7 @@
 {# ------------------------------------------------------------------------------------ #}
 {%- set dc = ctx|to_context_obj -%}
 {%- from "src/dates.j2" import formatDate, formatDateTime -%}
+{%- from "src/lists.j2" import useTable -%}
 {# ------------------------------------------------------------------------------------ #}
 {#  TAGS, REFERENCES, and EXPERTS MACROS                                                 #}
 {# ------------------------------------------------------------------------------------ #}
@@ -120,10 +121,7 @@
     <h4>{% trans %}Answers{% endtrans %}</h4>
     {% set itemPathPrefix = path ~ "." %}
     {% set hiPrefix = humanIdentifier ~ "." %}
-    {#- lean: table only if sub-questions plus their nested follow-ups are fewer than 6; nested answers go into the cells #}
-    {%- set nested = [] %}{% for fq in question.followups %}{{ collectFollowups(fq, nested) }}{% endfor %}
-    {% if question.followups|length > 0 and question.followups|length + nested|length < 6 %}
-    {# lean: table view (items as rows, sub-questions as columns) for fewer than 6 sub-questions #}
+    {% if useTable(question) %}
     <table class="answer-items-table">
       <thead>
         <tr>
@@ -169,14 +167,6 @@
     {% endif %}
   </div>
 {%- endmacro -%}
-{%- macro collectFollowups(question, acc) -%}
-{#- lean: all follow-up questions below a sub-question (answers of options, items of lists), recursively #}
-{%- if question is of_type("OptionsQuestion") -%}
-{%- for answer in question.answers -%}{%- for fu in answer.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}{%- endfor -%}
-{%- elif question is of_type("ListQuestion") -%}
-{%- for fu in question.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}
-{%- endif -%}
-{%- endmacro -%}
 {%- macro renderCellFollowups(questions, basePath, mode) -%}
 {#- lean: answered follow-ups inside a table cell; mode: lines (top level), inline (deeper), item (fields of a list item) #}
 {%- for q in questions if q.replies.get(basePath ~ "." ~ q.uuid) and q.replies.get(basePath ~ "." ~ q.uuid).value -%}
@@ -190,7 +180,7 @@
     {%- if fq is of_type("ValueQuestion") and fqReply is of_type("StringReply") -%}
       {{ fqReply.markdown_plain }}
     {%- elif fqReply.is_integration or fqReply.is_legacy_integration -%}
-      {{ fqReply.value|markdown }}
+      {{ fqReply.value.split(" ![]", 1)[0]|markdown }}
     {%- elif fq is of_type("OptionsQuestion") and fqReply is of_type("AnswerReply") -%}
       {{ fqReply.answer.label }}
       {{- renderCellFollowups(fqReply.answer.followups, fqPath ~ "." ~ fqReply.answer.uuid, "lines" if top else "inline") -}}
@@ -203,7 +193,7 @@
     {%- elif fq is of_type("ListQuestion") and fqReply is of_type("ItemListReply") -%}
       {%- for itemUuid in fqReply.items -%}
         {%- if not loop.first %}{% if top %}<br/>{% else %} {% endif %}{% endif -%}
-        ({{ loop.index }}){{ renderCellFollowups(fq.followups, fqPath ~ "." ~ itemUuid, "item") }}
+        <span id="item-{{ fq.uuid }}-{{ itemUuid }}">({{ loop.index }})</span>{{ renderCellFollowups(fq.followups, fqPath ~ "." ~ itemUuid, "item") }}
       {%- endfor -%}
     {%- else -%}
       {{ fqReply.value }}
@@ -395,7 +385,7 @@
         <td class="tags-row">{% for tag in selectedTags %}<span class="tag" style="background-color:{{tag.color}}">{{tag.name}}</span> {% endfor %}</td>
       </tr>
       {% endif %}
-      {% if dc.questionnaire.phase_uuid %}
+      {% if dc.questionnaire.phase_uuid and dc.questionnaire.phase.uuid == dc.questionnaire.phase_uuid %}
       <tr>
         <th>{% trans %}Project Phase{% endtrans %}</th>
         <td>{{dc.questionnaire.phase.title}}</td>

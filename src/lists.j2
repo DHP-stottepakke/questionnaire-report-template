@@ -1,0 +1,24 @@
+{#- ------------------------------------------------------------------------------------ -#}
+{#-  LISTS (lean: list questions with few sub-questions are rendered as tables)           -#}
+{#- ------------------------------------------------------------------------------------ -#}
+{%- macro collectFollowups(question, acc) -%}
+{#- all follow-up questions below a sub-question (answers of options, items of lists), recursively;
+    stops once 6 are collected, more never fit into a table -#}
+{%- if acc|length < 6 -%}
+{%- if question is of_type("OptionsQuestion") -%}
+{%- for answer in question.answers -%}{%- for fu in answer.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}{%- endfor -%}
+{%- elif question is of_type("ListQuestion") -%}
+{%- for fu in question.followups -%}{%- do acc.append(fu) -%}{{- collectFollowups(fu, acc) -}}{%- endfor -%}
+{%- endif -%}
+{%- endif -%}
+{%- endmacro -%}
+{%- macro useTable(question) -%}
+{#- non-empty output if the list is rendered as a table (items as rows, sub-questions as columns):
+    the sub-questions plus all their nested follow-ups are fewer than 6; nested answers go into the cells -#}
+{%- set count = question.followups|length -%}
+{%- if count > 0 and count < 6 -%}
+{%- set nested = [] -%}
+{%- for fq in question.followups -%}{{- collectFollowups(fq, nested) -}}{%- endfor -%}
+{%- if count + nested|length < 6 -%}true{%- endif -%}
+{%- endif -%}
+{%- endmacro -%}
